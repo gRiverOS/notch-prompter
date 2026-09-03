@@ -9,6 +9,15 @@ struct NotchPrompterApp: App {
             Button(delegate.isPanelVisible ? "Ocultar panel" : "Mostrar panel") {
                 delegate.togglePanel()
             }
+            Menu("Atajos") {
+                ForEach(HotKeyCenter.Action.allCases, id: \.rawValue) { action in
+                    if delegate.failedHotKeys.contains(action) {
+                        Text("\(action.label)  (no disponible)")
+                    } else {
+                        Text(action.label)
+                    }
+                }
+            }
             Divider()
             Button("Salir") { NSApplication.shared.terminate(nil) }
         }
@@ -19,14 +28,31 @@ struct NotchPrompterApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let engine = PrompterEngine(clock: DisplayLinkClock(), store: UserDefaultsStore())
     private var panel: PrompterPanel?
+    private let hotKeys = HotKeyCenter()
     @Published private(set) var isPanelVisible = false
+    @Published private(set) var failedHotKeys: [HotKeyCenter.Action] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        hotKeys.handler = { [weak self] action in
+            Task { @MainActor in self?.handle(action) }
+        }
+        hotKeys.register()
+        failedHotKeys = hotKeys.failed
         showPanel()
     }
 
     func togglePanel() {
         isPanelVisible ? hidePanel() : showPanel()
+    }
+
+    private func handle(_ action: HotKeyCenter.Action) {
+        switch action {
+        case .togglePlay: engine.togglePlay()
+        case .speedUp: engine.increaseSpeed()
+        case .speedDown: engine.decreaseSpeed()
+        case .reset: engine.reset()
+        case .toggleVisibility: togglePanel()
+        }
     }
 
     private func showPanel() {
