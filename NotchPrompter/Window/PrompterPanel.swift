@@ -22,10 +22,9 @@ final class PrompterPanel: NSPanel {
         hidesOnDeactivate = false
         contentView = NSHostingView(rootView: PrompterView(engine: engine))
 
-        engine.$isPlaying
-            .receive(on: RunLoop.main)
-            .sink { [weak self] playing in self?.ignoresMouseEvents = playing }
-            .store(in: &cancellables)
+        // El panel no tiene contenido interactivo, así que siempre ignora el mouse
+        // (evita robarle clicks al menú de barra o a otras apps mientras está a la vista).
+        ignoresMouseEvents = true
 
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .receive(on: RunLoop.main)
