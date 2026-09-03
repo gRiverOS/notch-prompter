@@ -1,5 +1,7 @@
 # NotchPrompter
 
+[![CI](https://github.com/gRiverOS/notch-prompter/actions/workflows/ci.yml/badge.svg)](https://github.com/gRiverOS/notch-prompter/actions/workflows/ci.yml)
+
 A teleprompter for macOS that hangs from the notch. Built for recording videos while talking to the camera: the text sits right below the lens.
 
 ## Install
