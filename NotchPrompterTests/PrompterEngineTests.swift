@@ -60,6 +60,13 @@ final class PrompterEngineTests: XCTestCase {
         XCTAssertEqual(clock.stopCount, 1)
     }
 
+    func testPlayDoesNothingWithoutContent() {
+        engine.contentHeight = 0
+        engine.togglePlay()
+        XCTAssertFalse(engine.isPlaying)
+        XCTAssertEqual(clock.startCount, 0)
+    }
+
     func testTogglePlayStartsAndStopsClock() {
         engine.togglePlay()
         XCTAssertTrue(engine.isPlaying)

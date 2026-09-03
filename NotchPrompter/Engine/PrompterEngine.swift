@@ -61,7 +61,10 @@ final class PrompterEngine: ObservableObject {
 
     private func play() {
         guard !isPlaying else { return }
+        guard contentHeight > 0 else { return }
         isPlaying = true
+        // El closure se asume aislado a MainActor porque DisplayLinkClock agrega
+        // el CADisplayLink a RunLoop.main, por lo que sus ticks siempre llegan ahí.
         clock.start { [weak self] dt in
             MainActor.assumeIsolated {
                 self?.tick(dt: dt)
