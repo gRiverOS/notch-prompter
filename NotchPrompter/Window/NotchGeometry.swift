@@ -1,14 +1,14 @@
 import CoreGraphics
 
-/// Cálculo puro del frame del panel a partir de la geometría de la pantalla.
-/// Coordenadas AppKit: origen abajo a la izquierda, Y crece hacia arriba.
+/// Pure computation of the panel frame from the screen geometry.
+/// AppKit coordinates: origin at the bottom-left, Y grows upwards.
 enum NotchGeometry {
     static let panelSize = CGSize(width: 560, height: 130)
 
     /// - Parameters:
     ///   - screenFrame: `NSScreen.frame`.
-    ///   - topLeftArea: `NSScreen.auxiliaryTopLeftArea` (nil si no hay notch).
-    ///   - topRightArea: `NSScreen.auxiliaryTopRightArea` (nil si no hay notch).
+    ///   - topLeftArea: `NSScreen.auxiliaryTopLeftArea` (nil when there is no notch).
+    ///   - topRightArea: `NSScreen.auxiliaryTopRightArea` (nil when there is no notch).
     static func panelFrame(
         screenFrame: CGRect,
         topLeftArea: CGRect?,

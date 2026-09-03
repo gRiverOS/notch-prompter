@@ -2,14 +2,14 @@ import XCTest
 @testable import NotchPrompter
 
 final class NotchGeometryTests: XCTestCase {
-    // MacBook Pro 14": pantalla 1512x982, notch de 38 pt entre las áreas auxiliares.
+    // MacBook Pro 14": 1512x982 screen, 38 pt notch between the auxiliary areas.
     let mbp14 = CGRect(x: 0, y: 0, width: 1512, height: 982)
     let leftArea = CGRect(x: 0, y: 944, width: 700, height: 38)
     let rightArea = CGRect(x: 820, y: 944, width: 692, height: 38)
 
     func testPanelIsCenteredOnNotchAndPinnedToTop() {
         let frame = NotchGeometry.panelFrame(screenFrame: mbp14, topLeftArea: leftArea, topRightArea: rightArea)
-        // Centro del notch = (700 + 820) / 2 = 760
+        // Notch center = (700 + 820) / 2 = 760
         XCTAssertEqual(frame.midX, 760, accuracy: 0.001)
         XCTAssertEqual(frame.maxY, 982, accuracy: 0.001)
         XCTAssertEqual(frame.size, NotchGeometry.panelSize)

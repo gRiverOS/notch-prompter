@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import Combine
 
-/// Panel sin borde, no activante, que flota sobre todo pegado al notch.
+/// Borderless, non-activating panel that floats above everything, pinned to the notch.
 final class PrompterPanel: NSPanel {
     private var cancellables = Set<AnyCancellable>()
 
@@ -22,8 +22,8 @@ final class PrompterPanel: NSPanel {
         hidesOnDeactivate = false
         contentView = NSHostingView(rootView: PrompterView(engine: engine))
 
-        // El panel no tiene contenido interactivo, así que siempre ignora el mouse
-        // (evita robarle clicks al menú de barra o a otras apps mientras está a la vista).
+        // The panel has no interactive content, so it always ignores the mouse
+        // (avoids stealing clicks from the menu bar or other apps while visible).
         ignoresMouseEvents = true
 
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
@@ -38,8 +38,8 @@ final class PrompterPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     func reposition() {
-        // NSScreen.main puede ser nil transitoriamente (reconfiguración de pantalla, sleep/wake)
-        // en una app LSUIElement no activante; usamos el primer screen disponible como respaldo.
+        // NSScreen.main can transiently be nil (display reconfiguration, sleep/wake)
+        // in a non-activating LSUIElement app; fall back to the first available screen.
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let frame = NotchGeometry.panelFrame(
             screenFrame: screen.frame,

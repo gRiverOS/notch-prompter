@@ -1,8 +1,8 @@
 # NotchPrompter
 
-Teleprompter para macOS que cuelga del notch. Pensado para grabar videos hablando a cámara: el texto queda justo bajo el lente.
+A teleprompter for macOS that hangs from the notch. Built for recording videos while talking to the camera: the text sits right below the lens.
 
-## Requisitos
+## Requirements
 
 - macOS 14+
 - Xcode 15+
@@ -22,17 +22,17 @@ open DerivedData/Build/Products/Debug/NotchPrompter.app
 xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS'
 ```
 
-## Atajos (globales, con ⌃⌥)
+## Shortcuts (global, with ⌃⌥)
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| ⌃⌥ Espacio | Play / pausa |
-| ⌃⌥ ↑ / ↓ | Velocidad +10 / -10 |
-| ⌃⌥ R | Volver al inicio |
-| ⌃⌥ T | Mostrar / ocultar panel |
+| ⌃⌥ Space | Play / pause |
+| ⌃⌥ ↑ / ↓ | Speed +10 / -10 |
+| ⌃⌥ R | Back to start |
+| ⌃⌥ T | Show / hide panel |
 
-El guion se edita desde el ícono de la barra de menú y se guarda solo.
+The script is edited from the menu bar icon and saved automatically when the editor window closes.
 
-## Licencia
+## License
 
-MIT. Ver [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

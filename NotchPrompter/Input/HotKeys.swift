@@ -1,7 +1,7 @@
 import Carbon
 import Foundation
 
-/// Atajos globales vía Carbon. No requiere permiso de Accesibilidad.
+/// Global hotkeys via Carbon. Does not require Accessibility permission.
 final class HotKeyCenter {
     enum Action: UInt32, CaseIterable {
         case togglePlay = 1
@@ -22,11 +22,11 @@ final class HotKeyCenter {
 
         var label: String {
             switch self {
-            case .togglePlay: return "⌃⌥ Espacio  Play / pausa"
-            case .speedUp: return "⌃⌥ ↑  Velocidad +10"
-            case .speedDown: return "⌃⌥ ↓  Velocidad -10"
-            case .reset: return "⌃⌥ R  Volver al inicio"
-            case .toggleVisibility: return "⌃⌥ T  Mostrar / ocultar panel"
+            case .togglePlay: return "⌃⌥ Space  Play / pause"
+            case .speedUp: return "⌃⌥ ↑  Speed +10"
+            case .speedDown: return "⌃⌥ ↓  Speed -10"
+            case .reset: return "⌃⌥ R  Back to start"
+            case .toggleVisibility: return "⌃⌥ T  Show / hide panel"
             }
         }
     }

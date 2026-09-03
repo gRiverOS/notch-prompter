@@ -1,6 +1,6 @@
 import Foundation
 
-/// Persistencia de texto y velocidad. Inyectable para tests.
+/// Persists the script text and scroll speed. Injectable for tests.
 protocol SettingsStore: AnyObject {
     var text: String { get set }
     var speed: Double { get set }

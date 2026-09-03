@@ -1,7 +1,7 @@
 import Foundation
 import CoreGraphics
 
-/// Estado y reglas del teleprompter. Sin dependencias de UI.
+/// Teleprompter state and rules. No UI dependencies.
 @MainActor
 final class PrompterEngine: ObservableObject {
     nonisolated static let speedRange: ClosedRange<Double> = 20...200
@@ -20,7 +20,7 @@ final class PrompterEngine: ObservableObject {
     }
     @Published private(set) var isPlaying = false
 
-    /// Altura total del contenido desplazable. La vista la informa al medirse.
+    /// Total height of the scrollable content. The view reports it after measuring.
     var contentHeight: CGFloat = 0
 
     private let clock: FrameClock
@@ -63,8 +63,8 @@ final class PrompterEngine: ObservableObject {
         guard !isPlaying else { return }
         guard contentHeight > 0 else { return }
         isPlaying = true
-        // El closure se asume aislado a MainActor porque DisplayLinkClock agrega
-        // el CADisplayLink a RunLoop.main, por lo que sus ticks siempre llegan ahí.
+        // The closure is assumed MainActor-isolated because DisplayLinkClock adds
+        // the CADisplayLink to RunLoop.main, so its ticks always arrive there.
         clock.start { [weak self] dt in
             MainActor.assumeIsolated {
                 self?.tick(dt: dt)

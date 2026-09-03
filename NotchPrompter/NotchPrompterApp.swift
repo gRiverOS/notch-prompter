@@ -6,21 +6,21 @@ struct NotchPrompterApp: App {
 
     var body: some Scene {
         MenuBarExtra("NotchPrompter", systemImage: "text.alignleft") {
-            Button("Editar guion…") { delegate.openEditor() }
-            Button(delegate.isPanelVisible ? "Ocultar panel" : "Mostrar panel") {
+            Button("Edit Script…") { delegate.openEditor() }
+            Button(delegate.isPanelVisible ? "Hide Panel" : "Show Panel") {
                 delegate.togglePanel()
             }
-            Menu("Atajos") {
+            Menu("Shortcuts") {
                 ForEach(HotKeyCenter.Action.allCases, id: \.rawValue) { action in
                     if delegate.failedHotKeys.contains(action) {
-                        Text("\(action.label)  (no disponible)")
+                        Text("\(action.label)  (unavailable)")
                     } else {
                         Text(action.label)
                     }
                 }
             }
             Divider()
-            Button("Salir") { NSApplication.shared.terminate(nil) }
+            Button("Quit") { NSApplication.shared.terminate(nil) }
         }
     }
 }
@@ -57,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWi
                 backing: .buffered,
                 defer: false
             )
-            window.title = "Guion"
+            window.title = "Script"
             window.contentView = NSHostingView(rootView: ScriptEditorView(draft: draft))
             window.isReleasedWhenClosed = false
             window.delegate = self

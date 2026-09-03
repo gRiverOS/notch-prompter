@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Buffer temporal del guion mientras la ventana de edición está abierta.
-/// El motor solo se actualiza cuando la ventana se cierra (ver `AppDelegate.windowWillClose`).
+/// Temporary script buffer while the editor window is open.
+/// The engine is only updated when the window closes (see `AppDelegate.windowWillClose`).
 @MainActor
 final class ScriptDraft: ObservableObject {
     @Published var text: String
@@ -16,12 +16,12 @@ struct ScriptEditorView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Guion")
+            Text("Script")
                 .font(.headline)
             TextEditor(text: $draft.text)
                 .font(.system(size: 15))
                 .frame(minWidth: 420, minHeight: 280)
-            Text("Se guarda al cerrar esta ventana. El panel vuelve al inicio.")
+            Text("Saved when this window closes. The panel goes back to the start.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
