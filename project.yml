@@ -30,8 +30,11 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSHumanReadableCopyright: "© 2026 Gustavo L. Riveros. MIT License."
     settings:
-      base:
-        ENABLE_TESTABILITY: YES
+      configs:
+        Debug:
+          ENABLE_TESTABILITY: YES
+        Release:
+          ENABLE_TESTABILITY: NO
   NotchPrompterTests:
     type: bundle.unit-test
     platform: macOS

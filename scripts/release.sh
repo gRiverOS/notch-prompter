@@ -55,6 +55,8 @@ xcodebuild build \
   CODE_SIGN_IDENTITY="$IDENTITY" \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   ENABLE_HARDENED_RUNTIME=YES \
+  ENABLE_TESTABILITY=NO \
+  CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
   OTHER_CODE_SIGN_FLAGS="--timestamp --options runtime" \
   MARKETING_VERSION="$VERSION" \
   CURRENT_PROJECT_VERSION="$(git rev-list --count HEAD)" \
@@ -62,11 +64,19 @@ xcodebuild build \
 [[ -d "$APP" ]] || { echo "build failed: $APP not found"; exit 1; }
 
 codesign --verify --deep --strict --verbose=2 "$APP"
+if codesign -d --entitlements - "$APP" 2>/dev/null | grep -q "get-task-allow"; then
+  echo "binary carries com.apple.security.get-task-allow; notarization would reject it"; exit 1
+fi
 
 # --- Notarize + staple -------------------------------------------------------
 ditto -c -k --keepParent "$APP" "$ZIP"
 echo "==> Submitting to notarization (this can take a few minutes)"
-xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
+SUBMIT_OUTPUT="$(xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait 2>&1 | tee /dev/stderr)"
+if ! grep -q "status: Accepted" <<<"$SUBMIT_OUTPUT"; then
+  SUBMISSION_ID="$(grep -m1 -E '^\s*id:' <<<"$SUBMIT_OUTPUT" | awk '{print $2}')"
+  echo "notarization failed; details: xcrun notarytool log $SUBMISSION_ID --keychain-profile $NOTARY_PROFILE"
+  exit 1
+fi
 xcrun stapler staple "$APP"
 rm -f "$ZIP"
 ditto -c -k --keepParent "$APP" "$ZIP"
