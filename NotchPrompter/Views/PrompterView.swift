@@ -40,6 +40,9 @@ struct PrompterView: View {
     private func scrollingText(viewportHeight: CGFloat) -> some View {
         Text(engine.text)
             .font(.system(size: fontSize, weight: .medium))
+            // El alto propuesto por el panel es menor que el padding superior, así que sin esto
+            // SwiftUI recorta el texto a una sola línea con "…".
+            .fixedSize(horizontal: false, vertical: true)
             .lineSpacing(fontSize * 0.3)
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)

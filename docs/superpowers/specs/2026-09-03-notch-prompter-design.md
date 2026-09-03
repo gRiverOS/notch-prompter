@@ -32,7 +32,7 @@ Geometría (`NotchGeometry`), función pura sobre valores extraídos de `NSScree
 
 - Entrada: `screenFrame`, `safeAreaInsets.top`, `auxiliaryTopLeftArea`, `auxiliaryTopRightArea`.
 - Ancho del notch = `topRight.minX - topLeft.maxX` cuando ambas áreas existen; si no hay notch, ancho 0.
-- Panel: 560 x 130 pt, centrado en X sobre el centro del notch (o de la pantalla si no hay notch), borde superior pegado al borde superior de la pantalla.
+- Panel: 560 x 130 pt, centrado en X sobre el centro del notch (o de la pantalla si no hay notch), borde superior pegado al borde inferior de la barra de menú (`frame.maxY - visibleFrame.maxY`), para no tapar los ítems de la barra.
 - Se recalcula al recibir `NSApplication.didChangeScreenParametersNotification`.
 
 ## 2. Motor de scroll

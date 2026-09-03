@@ -9,10 +9,13 @@ enum NotchGeometry {
     ///   - screenFrame: `NSScreen.frame`.
     ///   - topLeftArea: `NSScreen.auxiliaryTopLeftArea` (nil si no hay notch).
     ///   - topRightArea: `NSScreen.auxiliaryTopRightArea` (nil si no hay notch).
+    ///   - menuBarHeight: alto de la barra de menú (`frame.maxY - visibleFrame.maxY`).
+    ///     El panel cuelga desde su borde inferior para no tapar los ítems de la barra.
     static func panelFrame(
         screenFrame: CGRect,
         topLeftArea: CGRect?,
         topRightArea: CGRect?,
+        menuBarHeight: CGFloat,
         size: CGSize = panelSize
     ) -> CGRect {
         let centerX: CGFloat
@@ -23,7 +26,7 @@ enum NotchGeometry {
         }
         let origin = CGPoint(
             x: centerX - size.width / 2,
-            y: screenFrame.maxY - size.height
+            y: screenFrame.maxY - menuBarHeight - size.height
         )
         return CGRect(origin: origin, size: size)
     }
