@@ -2,6 +2,10 @@
 
 A teleprompter for macOS that hangs from the notch. Built for recording videos while talking to the camera: the text sits right below the lens.
 
+## Install
+
+Download the latest `NotchPrompter-<version>.zip` from [Releases](https://github.com/gRiverOS/notch-prompter/releases), unzip it and drag `NotchPrompter.app` to Applications. The app is signed with a Developer ID and notarized, so it opens without warnings.
+
 ## Requirements
 
 - macOS 14+
@@ -32,6 +36,16 @@ xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destinat
 | ⌃⌥ T | Show / hide panel |
 
 The script is edited from the menu bar icon and saved automatically when the editor window closes.
+
+## Release (maintainers)
+
+Requires a Developer ID Application certificate, a `notarytool` keychain profile and an authenticated `gh` CLI. See the header of `scripts/release.sh` for the one-time setup.
+
+```bash
+scripts/release.sh 0.1.0
+```
+
+It builds a Release binary, signs it with hardened runtime, notarizes and staples it, runs a Gatekeeper check, tags `v0.1.0` and publishes a GitHub Release with the zip attached.
 
 ## License
 
