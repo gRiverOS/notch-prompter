@@ -39,7 +39,9 @@ final class PrompterPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     func reposition() {
-        guard let screen = NSScreen.main else { return }
+        // NSScreen.main puede ser nil transitoriamente (reconfiguración de pantalla, sleep/wake)
+        // en una app LSUIElement no activante; usamos el primer screen disponible como respaldo.
+        guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let frame = NotchGeometry.panelFrame(
             screenFrame: screen.frame,
             topLeftArea: screen.auxiliaryTopLeftArea,
