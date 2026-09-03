@@ -6,6 +6,7 @@ struct NotchPrompterApp: App {
 
     var body: some Scene {
         MenuBarExtra("NotchPrompter", systemImage: "text.alignleft") {
+            Button("Editar guion…") { delegate.openEditor() }
             Button(delegate.isPanelVisible ? "Ocultar panel" : "Mostrar panel") {
                 delegate.togglePanel()
             }
@@ -28,6 +29,7 @@ struct NotchPrompterApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let engine = PrompterEngine(clock: DisplayLinkClock(), store: UserDefaultsStore())
     private var panel: PrompterPanel?
+    private var editorWindow: NSWindow?
     private let hotKeys = HotKeyCenter()
     @Published private(set) var isPanelVisible = false
     @Published private(set) var failedHotKeys: [HotKeyCenter.Action] = []
@@ -43,6 +45,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     func togglePanel() {
         isPanelVisible ? hidePanel() : showPanel()
+    }
+
+    func openEditor() {
+        if editorWindow == nil {
+            let window = NSWindow(
+                contentRect: CGRect(x: 0, y: 0, width: 480, height: 360),
+                styleMask: [.titled, .closable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "Guion"
+            window.contentView = NSHostingView(rootView: ScriptEditorView(engine: engine))
+            window.isReleasedWhenClosed = false
+            window.center()
+            editorWindow = window
+        }
+        editorWindow?.makeKeyAndOrderFront(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
     }
 
     private func handle(_ action: HotKeyCenter.Action) {
