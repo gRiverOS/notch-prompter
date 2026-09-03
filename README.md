@@ -32,3 +32,7 @@ xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destinat
 | ⌃⌥ T | Mostrar / ocultar panel |
 
 El guion se edita desde el ícono de la barra de menú y se guarda solo.
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).
