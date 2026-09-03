@@ -2,26 +2,26 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Teleprompter nativo de macOS que cuelga del notch, con scroll automático de velocidad ajustable y atajos globales, para grabar videos hablando a cámara.
+**Goal:** Native macOS teleprompter that hangs from the notch, with adjustable-speed auto-scroll and global hotkeys, for recording videos while talking to the camera.
 
-**Architecture:** App de barra de menú (`LSUIElement`) con un `NSPanel` no activante que flota sobre todo, incluso fullscreen, pegado al borde superior de la pantalla centrado en el notch. Un `PrompterEngine` puro (sin UI) avanza el offset con un reloj inyectable y persiste texto y velocidad. SwiftUI dibuja el texto; Carbon `RegisterEventHotKey` provee los atajos globales sin permisos.
+**Architecture:** A menu bar app (`LSUIElement`) with a non-activating `NSPanel` that floats over everything, even fullscreen, pinned to the top edge of the screen and centered on the notch. A pure `PrompterEngine` (no UI) advances the offset with an injectable clock and persists text and speed. SwiftUI draws the text; Carbon `RegisterEventHotKey` provides the global hotkeys without requiring permissions.
 
-**Tech Stack:** Swift 5.9, SwiftUI + AppKit, Carbon (HotKeys), XCTest, XcodeGen, macOS 14+. Sin dependencias externas.
+**Tech Stack:** Swift 5.9, SwiftUI + AppKit, Carbon (HotKeys), XCTest, XcodeGen, macOS 14+. No external dependencies.
 
 **Spec:** `docs/superpowers/specs/2026-09-03-notch-prompter-design.md`
 
 ## Global Constraints
 
-- Deployment target: macOS 14.0 (usa `NSScreen.displayLink`).
-- Sin paquetes externos. Solo frameworks de Apple.
-- `LSUIElement = true`: sin ícono en Dock, sin ventana principal.
-- Panel: 560 x 130 pt, esquinas inferiores 16 pt, fondo negro.
-- Velocidad: rango 20...200 pt/s, default 60, paso 10.
-- Tipografía: SF Pro 34 pt, blanco, interlineado 1.3, sin `minimumScaleFactor`.
-- Atajos fijos con ⌃⌥: Espacio (play/pausa), ↑/↓ (velocidad), R (reset), T (mostrar/ocultar).
-- Texto vacío muestra: "Escribe tu guion desde el menú".
+- Deployment target: macOS 14.0 (uses `NSScreen.displayLink`).
+- No external packages. Apple frameworks only.
+- `LSUIElement = true`: no Dock icon, no main window.
+- Panel: 560 x 130 pt, bottom corners 16 pt, black background.
+- Speed: range 20...200 pt/s, default 60, step 10.
+- Typography: SF Pro 34 pt, white, 1.3 line spacing, no `minimumScaleFactor`.
+- Fixed hotkeys with ⌃⌥: Space (play/pause), ↑/↓ (speed), R (reset), T (show/hide).
+- Empty text shows: "Write your script from the menu".
 - Bundle id prefix: `cl.gustavo`.
-- Comando de tests: `xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS'`.
+- Test command: `xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS'`.
 
 ---
 
@@ -30,15 +30,15 @@
 ```
 project.yml                                  # XcodeGen: 2 targets (app + tests)
 NotchPrompter/
-  NotchPrompterApp.swift                     # @main, MenuBarExtra, Window del editor, AppDelegate
+  NotchPrompterApp.swift                     # @main, MenuBarExtra, editor Window, AppDelegate
   Info.plist                                 # LSUIElement
-  Window/NotchGeometry.swift                 # cálculo puro del frame del panel
-  Window/PrompterPanel.swift                 # NSPanel configurado + reposición
-  Engine/FrameClock.swift                    # protocolo + DisplayLinkClock
-  Engine/SettingsStore.swift                 # protocolo + UserDefaultsStore
-  Engine/PrompterEngine.swift                # estado y reglas del scroll
-  Views/PrompterView.swift                   # render del texto en el panel
-  Views/ScriptEditorView.swift               # TextEditor del guion
+  Window/NotchGeometry.swift                 # pure computation of the panel's frame
+  Window/PrompterPanel.swift                 # configured NSPanel + repositioning
+  Engine/FrameClock.swift                    # protocol + DisplayLinkClock
+  Engine/SettingsStore.swift                 # protocol + UserDefaultsStore
+  Engine/PrompterEngine.swift                # scroll state and rules
+  Views/PrompterView.swift                   # renders the text in the panel
+  Views/ScriptEditorView.swift               # script TextEditor
   Input/HotKeys.swift                        # Carbon hotkeys
 NotchPrompterTests/
   NotchGeometryTests.swift
@@ -48,7 +48,7 @@ NotchPrompterTests/
 
 ---
 
-### Task 1: Scaffold del proyecto con XcodeGen
+### Task 1: Project scaffold with XcodeGen
 
 **Files:**
 - Create: `project.yml`
@@ -58,14 +58,14 @@ NotchPrompterTests/
 - Create: `.gitignore`
 
 **Interfaces:**
-- Produces: proyecto `NotchPrompter.xcodeproj` generado, scheme `NotchPrompter` con tests. Los demás tasks solo agregan archivos bajo `NotchPrompter/` y `NotchPrompterTests/` y regeneran con `xcodegen`.
+- Produces: generated `NotchPrompter.xcodeproj` project, `NotchPrompter` scheme with tests. Later tasks only add files under `NotchPrompter/` and `NotchPrompterTests/` and regenerate with `xcodegen`.
 
-- [ ] **Step 1: Instalar XcodeGen**
+- [ ] **Step 1: Install XcodeGen**
 
 Run: `brew install xcodegen`
-Expected: `xcodegen --version` imprime una versión.
+Expected: `xcodegen --version` prints a version.
 
-- [ ] **Step 2: Crear `project.yml`**
+- [ ] **Step 2: Create `project.yml`**
 
 ```yaml
 name: NotchPrompter
@@ -117,7 +117,7 @@ schemes:
         - NotchPrompterTests
 ```
 
-- [ ] **Step 3: Crear `.gitignore`**
+- [ ] **Step 3: Create `.gitignore`**
 
 ```
 *.xcodeproj
@@ -126,9 +126,9 @@ xcuserdata/
 .DS_Store
 ```
 
-- [ ] **Step 4: Crear `NotchPrompter/Info.plist`**
+- [ ] **Step 4: Create `NotchPrompter/Info.plist`**
 
-XcodeGen genera el plist desde `info.properties`, pero necesita que el archivo exista. Crear con contenido mínimo, XcodeGen lo sobreescribe:
+XcodeGen generates the plist from `info.properties`, but it needs the file to exist. Create it with minimal content; XcodeGen will overwrite it:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -139,7 +139,7 @@ XcodeGen genera el plist desde `info.properties`, pero necesita que el archivo e
 </plist>
 ```
 
-- [ ] **Step 5: Crear app mínima `NotchPrompter/NotchPrompterApp.swift`**
+- [ ] **Step 5: Create the minimal app `NotchPrompter/NotchPrompterApp.swift`**
 
 ```swift
 import SwiftUI
@@ -148,13 +148,13 @@ import SwiftUI
 struct NotchPrompterApp: App {
     var body: some Scene {
         MenuBarExtra("NotchPrompter", systemImage: "text.alignleft") {
-            Button("Salir") { NSApplication.shared.terminate(nil) }
+            Button("Quit") { NSApplication.shared.terminate(nil) }
         }
     }
 }
 ```
 
-- [ ] **Step 6: Crear test de humo `NotchPrompterTests/SmokeTests.swift`**
+- [ ] **Step 6: Create the smoke test `NotchPrompterTests/SmokeTests.swift`**
 
 ```swift
 import XCTest
@@ -167,19 +167,19 @@ final class SmokeTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 7: Generar el proyecto y correr tests**
+- [ ] **Step 7: Generate the project and run tests**
 
 Run:
 ```bash
 xcodegen generate && xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "Test Case|error:|TEST (SUCCEEDED|FAILED)"
 ```
-Expected: `Test Case '-[NotchPrompterTests.SmokeTests testModuleLinks]' passed` y `** TEST SUCCEEDED **`.
+Expected: `Test Case '-[NotchPrompterTests.SmokeTests testModuleLinks]' passed` and `** TEST SUCCEEDED **`.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add project.yml .gitignore NotchPrompter NotchPrompterTests
-git commit -m "chore: scaffold NotchPrompter con XcodeGen"
+git commit -m "chore: scaffold NotchPrompter with XcodeGen"
 ```
 
 ---
@@ -198,23 +198,23 @@ git commit -m "chore: scaffold NotchPrompter con XcodeGen"
       static func panelFrame(screenFrame: CGRect, topLeftArea: CGRect?, topRightArea: CGRect?, size: CGSize = panelSize) -> CGRect
   }
   ```
-  Coordenadas AppKit (origen abajo a la izquierda). El frame queda pegado al borde superior (`maxY`) de `screenFrame`.
+  AppKit coordinates (origin at bottom left). The frame is pinned to the top edge (`maxY`) of `screenFrame`.
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [ ] **Step 1: Write the failing tests**
 
 ```swift
 import XCTest
 @testable import NotchPrompter
 
 final class NotchGeometryTests: XCTestCase {
-    // MacBook Pro 14": pantalla 1512x982, notch de 38 pt entre las áreas auxiliares.
+    // MacBook Pro 14": 1512x982 screen, 38 pt notch between the auxiliary areas.
     let mbp14 = CGRect(x: 0, y: 0, width: 1512, height: 982)
     let leftArea = CGRect(x: 0, y: 944, width: 700, height: 38)
     let rightArea = CGRect(x: 820, y: 944, width: 692, height: 38)
 
     func testPanelIsCenteredOnNotchAndPinnedToTop() {
         let frame = NotchGeometry.panelFrame(screenFrame: mbp14, topLeftArea: leftArea, topRightArea: rightArea)
-        // Centro del notch = (700 + 820) / 2 = 760
+        // Notch center = (700 + 820) / 2 = 760
         XCTAssertEqual(frame.midX, 760, accuracy: 0.001)
         XCTAssertEqual(frame.maxY, 982, accuracy: 0.001)
         XCTAssertEqual(frame.size, NotchGeometry.panelSize)
@@ -240,25 +240,25 @@ final class NotchGeometryTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Correr para verificar que falla**
+- [ ] **Step 2: Run to verify it fails**
 
 Run: `xcodegen generate && xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "error:|TEST (SUCCEEDED|FAILED)"`
-Expected: error de compilación `cannot find 'NotchGeometry' in scope`.
+Expected: compile error `cannot find 'NotchGeometry' in scope`.
 
-- [ ] **Step 3: Implementar `NotchPrompter/Window/NotchGeometry.swift`**
+- [ ] **Step 3: Implement `NotchPrompter/Window/NotchGeometry.swift`**
 
 ```swift
 import CoreGraphics
 
-/// Cálculo puro del frame del panel a partir de la geometría de la pantalla.
-/// Coordenadas AppKit: origen abajo a la izquierda, Y crece hacia arriba.
+/// Pure computation of the panel's frame from the screen's geometry.
+/// AppKit coordinates: origin at bottom left, Y grows upward.
 enum NotchGeometry {
     static let panelSize = CGSize(width: 560, height: 130)
 
     /// - Parameters:
     ///   - screenFrame: `NSScreen.frame`.
-    ///   - topLeftArea: `NSScreen.auxiliaryTopLeftArea` (nil si no hay notch).
-    ///   - topRightArea: `NSScreen.auxiliaryTopRightArea` (nil si no hay notch).
+    ///   - topLeftArea: `NSScreen.auxiliaryTopLeftArea` (nil if there is no notch).
+    ///   - topRightArea: `NSScreen.auxiliaryTopRightArea` (nil if there is no notch).
     static func panelFrame(
         screenFrame: CGRect,
         topLeftArea: CGRect?,
@@ -280,7 +280,7 @@ enum NotchGeometry {
 }
 ```
 
-- [ ] **Step 4: Correr para verificar que pasa**
+- [ ] **Step 4: Run to verify it passes**
 
 Run: `xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "Test Case.*NotchGeometry|TEST (SUCCEEDED|FAILED)"`
 Expected: 4 tests `passed`, `** TEST SUCCEEDED **`.
@@ -289,12 +289,12 @@ Expected: 4 tests `passed`, `** TEST SUCCEEDED **`.
 
 ```bash
 git add NotchPrompter/Window/NotchGeometry.swift NotchPrompterTests/NotchGeometryTests.swift
-git commit -m "feat: geometría del panel sobre el notch"
+git commit -m "feat: panel geometry over the notch"
 ```
 
 ---
 
-### Task 3: FrameClock, SettingsStore y PrompterEngine
+### Task 3: FrameClock, SettingsStore and PrompterEngine
 
 **Files:**
 - Create: `NotchPrompter/Engine/FrameClock.swift`
@@ -309,13 +309,13 @@ git commit -m "feat: geometría del panel sobre el notch"
       func start(onTick: @escaping (TimeInterval) -> Void)
       func stop()
   }
-  final class DisplayLinkClock: FrameClock   // producción, usa NSScreen.displayLink
+  final class DisplayLinkClock: FrameClock   // production, uses NSScreen.displayLink
 
   protocol SettingsStore: AnyObject {
       var text: String { get set }
       var speed: Double { get set }
   }
-  final class InMemoryStore: SettingsStore   // solo tests (vive en el target de tests)
+  final class InMemoryStore: SettingsStore   // tests only (lives in the tests target)
 
   @MainActor final class PrompterEngine: ObservableObject {
       static let speedRange: ClosedRange<Double>  // 20...200
@@ -325,7 +325,7 @@ git commit -m "feat: geometría del panel sobre el notch"
       @Published private(set) var offset: CGFloat
       @Published private(set) var speed: Double
       @Published private(set) var isPlaying: Bool
-      var contentHeight: CGFloat                  // lo setea la vista
+      var contentHeight: CGFloat                  // set by the view
       init(clock: FrameClock, store: SettingsStore)
       func tick(dt: TimeInterval)
       func togglePlay()
@@ -335,7 +335,7 @@ git commit -m "feat: geometría del panel sobre el notch"
   }
   ```
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [ ] **Step 1: Write the failing tests**
 
 ```swift
 import XCTest
@@ -374,10 +374,10 @@ final class PrompterEngineTests: XCTestCase {
     }
 
     func testLoadsTextAndSpeedFromStore() {
-        store.text = "hola"
+        store.text = "hello"
         store.speed = 90
         let e = PrompterEngine(clock: clock, store: store)
-        XCTAssertEqual(e.text, "hola")
+        XCTAssertEqual(e.text, "hello")
         XCTAssertEqual(e.speed, 90)
     }
 
@@ -433,8 +433,8 @@ final class PrompterEngineTests: XCTestCase {
     }
 
     func testTextPersistsToStore() {
-        engine.text = "nuevo guion"
-        XCTAssertEqual(store.text, "nuevo guion")
+        engine.text = "new script"
+        XCTAssertEqual(store.text, "new script")
     }
 
     func testResetReturnsToZeroAndPauses() {
@@ -449,31 +449,31 @@ final class PrompterEngineTests: XCTestCase {
     func testChangingTextResetsOffset() {
         engine.togglePlay()
         engine.tick(dt: 1)
-        engine.text = "otro"
+        engine.text = "another"
         XCTAssertEqual(engine.offset, 0)
         XCTAssertFalse(engine.isPlaying)
     }
 }
 ```
 
-- [ ] **Step 2: Correr para verificar que falla**
+- [ ] **Step 2: Run to verify it fails**
 
 Run: `xcodegen generate && xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "error:|TEST (SUCCEEDED|FAILED)"`
-Expected: errores `cannot find type 'FrameClock'`, `'SettingsStore'`, `'PrompterEngine'`.
+Expected: errors `cannot find type 'FrameClock'`, `'SettingsStore'`, `'PrompterEngine'`.
 
-- [ ] **Step 3: Implementar `NotchPrompter/Engine/FrameClock.swift`**
+- [ ] **Step 3: Implement `NotchPrompter/Engine/FrameClock.swift`**
 
 ```swift
 import AppKit
 import QuartzCore
 
-/// Fuente de ticks por frame. Inyectable para testear el motor sin UI.
+/// Source of per-frame ticks. Injectable so the engine can be tested without UI.
 protocol FrameClock: AnyObject {
     func start(onTick: @escaping (TimeInterval) -> Void)
     func stop()
 }
 
-/// Implementación real sobre CADisplayLink de NSScreen (macOS 14+).
+/// Real implementation over NSScreen's CADisplayLink (macOS 14+).
 final class DisplayLinkClock: FrameClock {
     private var link: CADisplayLink?
     private var lastTimestamp: CFTimeInterval?
@@ -504,12 +504,12 @@ final class DisplayLinkClock: FrameClock {
 }
 ```
 
-- [ ] **Step 4: Implementar `NotchPrompter/Engine/SettingsStore.swift`**
+- [ ] **Step 4: Implement `NotchPrompter/Engine/SettingsStore.swift`**
 
 ```swift
 import Foundation
 
-/// Persistencia de texto y velocidad. Inyectable para tests.
+/// Persistence for text and speed. Injectable for tests.
 protocol SettingsStore: AnyObject {
     var text: String { get set }
     var speed: Double { get set }
@@ -541,13 +541,13 @@ final class UserDefaultsStore: SettingsStore {
 }
 ```
 
-- [ ] **Step 5: Implementar `NotchPrompter/Engine/PrompterEngine.swift`**
+- [ ] **Step 5: Implement `NotchPrompter/Engine/PrompterEngine.swift`**
 
 ```swift
 import Foundation
 import CoreGraphics
 
-/// Estado y reglas del teleprompter. Sin dependencias de UI.
+/// Teleprompter state and rules. No UI dependencies.
 @MainActor
 final class PrompterEngine: ObservableObject {
     static let speedRange: ClosedRange<Double> = 20...200
@@ -566,7 +566,7 @@ final class PrompterEngine: ObservableObject {
     }
     @Published private(set) var isPlaying = false
 
-    /// Altura total del contenido desplazable. La vista la informa al medirse.
+    /// Total scrollable content height. The view reports it when measured.
     var contentHeight: CGFloat = 0
 
     private let clock: FrameClock
@@ -627,31 +627,31 @@ private extension ClosedRange where Bound == Double {
 }
 ```
 
-Nota: `text.didSet` llama a `reset()`, que llama a `pause()`. `pause()` solo detiene el reloj si estaba reproduciendo, así `stopCount` no se infla en los tests.
+Note: `text.didSet` calls `reset()`, which calls `pause()`. `pause()` only stops the clock if it was playing, so `stopCount` isn't inflated in the tests.
 
-- [ ] **Step 6: Correr para verificar que pasa**
+- [ ] **Step 6: Run to verify it passes**
 
 Run: `xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "Test Case.*PrompterEngine|error:|TEST (SUCCEEDED|FAILED)"`
-Expected: 12 tests `passed`, `** TEST SUCCEEDED **`. Si `clock.start` dentro de `init` da error de concurrencia, el closure ya captura `self` débil dentro de un contexto `@MainActor`; agregar `@MainActor` al closure: `clock.start { [weak self] dt in Task { @MainActor in self?.tick(dt: dt) } }` NO es aceptable porque rompe el test `testClockTicksReachEngine` (sincrónico). Usar `MainActor.assumeIsolated { self?.tick(dt: dt) }` en su lugar si el compilador lo exige.
+Expected: 12 tests `passed`, `** TEST SUCCEEDED **`. If `clock.start` inside `init` produces a concurrency error, the closure already captures `self` weakly within a `@MainActor` context; adding `@MainActor` to the closure like `clock.start { [weak self] dt in Task { @MainActor in self?.tick(dt: dt) } }` is NOT acceptable because it breaks the `testClockTicksReachEngine` test (synchronous). Use `MainActor.assumeIsolated { self?.tick(dt: dt) }` instead if the compiler requires it.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add NotchPrompter/Engine NotchPrompterTests/PrompterEngineTests.swift
-git commit -m "feat: motor de scroll con reloj y store inyectables"
+git commit -m "feat: scroll engine with injectable clock and store"
 ```
 
 ---
 
-### Task 4: Tests de UserDefaultsStore
+### Task 4: UserDefaultsStore tests
 
 **Files:**
 - Test: `NotchPrompterTests/UserDefaultsStoreTests.swift`
 
 **Interfaces:**
-- Consumes: `UserDefaultsStore(defaults:)` de Task 3.
+- Consumes: `UserDefaultsStore(defaults:)` from Task 3.
 
-- [ ] **Step 1: Escribir los tests**
+- [ ] **Step 1: Write the tests**
 
 ```swift
 import XCTest
@@ -674,25 +674,25 @@ final class UserDefaultsStoreTests: XCTestCase {
     }
 
     func testRoundTripsTextAndSpeed() {
-        store.text = "guion"
+        store.text = "script"
         store.speed = 120
         let reloaded = UserDefaultsStore(defaults: defaults)
-        XCTAssertEqual(reloaded.text, "guion")
+        XCTAssertEqual(reloaded.text, "script")
         XCTAssertEqual(reloaded.speed, 120)
     }
 }
 ```
 
-- [ ] **Step 2: Correr para verificar que pasa**
+- [ ] **Step 2: Run to verify it passes**
 
 Run: `xcodegen generate && xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "Test Case.*UserDefaultsStore|error:|TEST (SUCCEEDED|FAILED)"`
-Expected: 2 tests `passed`. Si falla, la implementación de Task 3 tiene un bug; arreglar ahí.
+Expected: 2 tests `passed`. If it fails, the Task 3 implementation has a bug; fix it there.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add NotchPrompterTests/UserDefaultsStoreTests.swift
-git commit -m "test: cobertura de UserDefaultsStore"
+git commit -m "test: UserDefaultsStore coverage"
 ```
 
 ---
@@ -706,9 +706,9 @@ git commit -m "test: cobertura de UserDefaultsStore"
 - Consumes: `PrompterEngine` (`text`, `offset`, `speed`, `isPlaying`, `contentHeight`).
 - Produces: `struct PrompterView: View { init(engine: PrompterEngine) }`.
 
-Sin tests unitarios: es render puro. Se verifica visualmente en Task 6 y en la verificación manual final.
+No unit tests: it's pure rendering. Verified visually in Task 6 and in the final manual verification.
 
-- [ ] **Step 1: Implementar `NotchPrompter/Views/PrompterView.swift`**
+- [ ] **Step 1: Implement `NotchPrompter/Views/PrompterView.swift`**
 
 ```swift
 import SwiftUI
@@ -744,7 +744,7 @@ struct PrompterView: View {
     }
 
     private var placeholder: some View {
-        Text("Escribe tu guion desde el menú")
+        Text("Write your script from the menu")
             .font(.system(size: 18))
             .foregroundStyle(.gray)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -808,9 +808,9 @@ struct PrompterView: View {
 }
 ```
 
-Nota sobre `contentHeight`: incluye el padding superior igual al viewport, así el texto entra desde abajo y el scroll termina cuando la última línea sale por arriba.
+Note on `contentHeight`: it includes the top padding equal to the viewport, so the text enters from below and the scroll ends when the last line exits at the top.
 
-- [ ] **Step 2: Verificar que compila**
+- [ ] **Step 2: Verify it builds**
 
 Run: `xcodegen generate && xcodebuild build -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)"`
 Expected: `** BUILD SUCCEEDED **`.
@@ -819,16 +819,16 @@ Expected: `** BUILD SUCCEEDED **`.
 
 ```bash
 git add NotchPrompter/Views/PrompterView.swift
-git commit -m "feat: vista del teleprompter con fades y badge de velocidad"
+git commit -m "feat: teleprompter view with fades and speed badge"
 ```
 
 ---
 
-### Task 6: PrompterPanel y AppDelegate que lo muestra
+### Task 6: PrompterPanel and the AppDelegate that shows it
 
 **Files:**
 - Create: `NotchPrompter/Window/PrompterPanel.swift`
-- Modify: `NotchPrompter/NotchPrompterApp.swift` (reemplazar completo)
+- Modify: `NotchPrompter/NotchPrompterApp.swift` (full replacement)
 
 **Interfaces:**
 - Consumes: `NotchGeometry.panelFrame`, `PrompterView`, `PrompterEngine`, `DisplayLinkClock`, `UserDefaultsStore`.
@@ -842,14 +842,14 @@ git commit -m "feat: vista del teleprompter con fades y badge de velocidad"
   }
   ```
 
-- [ ] **Step 1: Implementar `NotchPrompter/Window/PrompterPanel.swift`**
+- [ ] **Step 1: Implement `NotchPrompter/Window/PrompterPanel.swift`**
 
 ```swift
 import AppKit
 import SwiftUI
 import Combine
 
-/// Panel sin borde, no activante, que flota sobre todo pegado al notch.
+/// Borderless, non-activating panel that floats over everything, pinned to the notch.
 final class PrompterPanel: NSPanel {
     private var cancellables = Set<AnyCancellable>()
 
@@ -869,7 +869,7 @@ final class PrompterPanel: NSPanel {
         hidesOnDeactivate = false
         contentView = NSHostingView(rootView: PrompterView(engine: engine))
 
-        // El panel no tiene contenido interactivo, así que siempre ignora el mouse.
+        // The panel has no interactive content, so it always ignores the mouse.
         ignoresMouseEvents = true
 
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
@@ -895,7 +895,7 @@ final class PrompterPanel: NSPanel {
 }
 ```
 
-- [ ] **Step 2: Reemplazar `NotchPrompter/NotchPrompterApp.swift`**
+- [ ] **Step 2: Replace `NotchPrompter/NotchPrompterApp.swift`**
 
 ```swift
 import SwiftUI
@@ -906,11 +906,11 @@ struct NotchPrompterApp: App {
 
     var body: some Scene {
         MenuBarExtra("NotchPrompter", systemImage: "text.alignleft") {
-            Button(delegate.isPanelVisible ? "Ocultar panel" : "Mostrar panel") {
+            Button(delegate.isPanelVisible ? "Hide Panel" : "Show Panel") {
                 delegate.togglePanel()
             }
             Divider()
-            Button("Salir") { NSApplication.shared.terminate(nil) }
+            Button("Quit") { NSApplication.shared.terminate(nil) }
         }
     }
 }
@@ -944,28 +944,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 }
 ```
 
-- [ ] **Step 3: Compilar y correr la app**
+- [ ] **Step 3: Build and run the app**
 
 Run:
 ```bash
 xcodegen generate && xcodebuild build -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' -derivedDataPath DerivedData 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)" && open DerivedData/Build/Products/Debug/NotchPrompter.app
 ```
-Expected: `BUILD SUCCEEDED`. Aparece el ícono en la barra de menú y un panel negro con el placeholder "Escribe tu guion desde el menú" colgando del notch, centrado. "Ocultar panel" lo esconde, "Mostrar panel" lo vuelve a mostrar. Cerrar la app desde el menú antes de seguir.
+Expected: `BUILD SUCCEEDED`. The icon appears in the menu bar and a black panel with the placeholder "Write your script from the menu" hangs from the notch, centered. "Hide Panel" hides it, "Show Panel" shows it again. Close the app from the menu before continuing.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add NotchPrompter/Window/PrompterPanel.swift NotchPrompter/NotchPrompterApp.swift
-git commit -m "feat: panel flotante sobre el notch y menú de barra"
+git commit -m "feat: floating panel over the notch and menu bar item"
 ```
 
 ---
 
-### Task 7: HotKeys globales con Carbon
+### Task 7: Global hotkeys with Carbon
 
 **Files:**
 - Create: `NotchPrompter/Input/HotKeys.swift`
-- Modify: `NotchPrompter/NotchPrompterApp.swift` (AppDelegate: registrar y despachar; menú: submenú de atajos con fallos)
+- Modify: `NotchPrompter/NotchPrompterApp.swift` (AppDelegate: register and dispatch; menu: shortcuts submenu with failures)
 
 **Interfaces:**
 - Consumes: `AppDelegate.engine`, `AppDelegate.togglePanel()`.
@@ -981,13 +981,13 @@ git commit -m "feat: panel flotante sobre el notch y menú de barra"
   }
   ```
 
-- [ ] **Step 1: Implementar `NotchPrompter/Input/HotKeys.swift`**
+- [ ] **Step 1: Implement `NotchPrompter/Input/HotKeys.swift`**
 
 ```swift
 import Carbon
 import Foundation
 
-/// Atajos globales vía Carbon. No requiere permiso de Accesibilidad.
+/// Global hotkeys via Carbon. Does not require Accessibility permission.
 final class HotKeyCenter {
     enum Action: UInt32, CaseIterable {
         case togglePlay = 1
@@ -1008,11 +1008,11 @@ final class HotKeyCenter {
 
         var label: String {
             switch self {
-            case .togglePlay: return "⌃⌥ Espacio  Play / pausa"
-            case .speedUp: return "⌃⌥ ↑  Velocidad +10"
-            case .speedDown: return "⌃⌥ ↓  Velocidad -10"
-            case .reset: return "⌃⌥ R  Volver al inicio"
-            case .toggleVisibility: return "⌃⌥ T  Mostrar / ocultar panel"
+            case .togglePlay: return "⌃⌥ Space  Play / pause"
+            case .speedUp: return "⌃⌥ ↑  Speed +10"
+            case .speedDown: return "⌃⌥ ↓  Speed -10"
+            case .reset: return "⌃⌥ R  Back to start"
+            case .toggleVisibility: return "⌃⌥ T  Show / hide panel"
             }
         }
     }
@@ -1090,9 +1090,9 @@ final class HotKeyCenter {
 }
 ```
 
-- [ ] **Step 2: Conectar en `AppDelegate` y agregar submenú de atajos**
+- [ ] **Step 2: Wire it up in `AppDelegate` and add the shortcuts submenu**
 
-Reemplazar `NotchPrompter/NotchPrompterApp.swift` completo:
+Replace `NotchPrompter/NotchPrompterApp.swift` in full:
 
 ```swift
 import SwiftUI
@@ -1103,20 +1103,20 @@ struct NotchPrompterApp: App {
 
     var body: some Scene {
         MenuBarExtra("NotchPrompter", systemImage: "text.alignleft") {
-            Button(delegate.isPanelVisible ? "Ocultar panel" : "Mostrar panel") {
+            Button(delegate.isPanelVisible ? "Hide Panel" : "Show Panel") {
                 delegate.togglePanel()
             }
-            Menu("Atajos") {
+            Menu("Shortcuts") {
                 ForEach(HotKeyCenter.Action.allCases, id: \.rawValue) { action in
                     if delegate.failedHotKeys.contains(action) {
-                        Text("\(action.label)  (no disponible)")
+                        Text("\(action.label)  (unavailable)")
                     } else {
                         Text(action.label)
                     }
                 }
             }
             Divider()
-            Button("Salir") { NSApplication.shared.terminate(nil) }
+            Button("Quit") { NSApplication.shared.terminate(nil) }
         }
     }
 }
@@ -1167,40 +1167,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 }
 ```
 
-- [ ] **Step 3: Compilar y probar a mano**
+- [ ] **Step 3: Build and test manually**
 
 Run:
 ```bash
 xcodegen generate && xcodebuild build -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' -derivedDataPath DerivedData 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)" && open DerivedData/Build/Products/Debug/NotchPrompter.app
 ```
-Expected: con otra app en foco (por ejemplo Finder), ⌃⌥T oculta y muestra el panel. El submenú Atajos lista los 5 sin "(no disponible)". Play y velocidad no se pueden ver todavía porque no hay texto; eso se prueba en Task 8. Cerrar la app.
+Expected: with another app in focus (for example Finder), ⌃⌥T hides and shows the panel. The Shortcuts submenu lists all 5 without "(unavailable)". Play and speed can't be seen yet because there's no text; that's tested in Task 8. Close the app.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add NotchPrompter/Input/HotKeys.swift NotchPrompter/NotchPrompterApp.swift
-git commit -m "feat: atajos globales con Carbon"
+git commit -m "feat: global hotkeys with Carbon"
 ```
 
 ---
 
-### Task 8: Editor de guion
+### Task 8: Script editor
 
 **Files:**
 - Create: `NotchPrompter/Views/ScriptEditorView.swift`
-- Modify: `NotchPrompter/NotchPrompterApp.swift` (agregar `Window` scene y botón "Editar guion…")
+- Modify: `NotchPrompter/NotchPrompterApp.swift` (add `Window` scene and "Edit Script…" button)
 
 **Interfaces:**
 - Consumes: `PrompterEngine.text`.
 - Produces: `struct ScriptEditorView: View { init(engine: PrompterEngine) }`.
 
-- [ ] **Step 1: Implementar `NotchPrompter/Views/ScriptEditorView.swift`**
+- [ ] **Step 1: Implement `NotchPrompter/Views/ScriptEditorView.swift`**
 
 ```swift
 import SwiftUI
 
-/// Buffer temporal del guion mientras la ventana de edición está abierta.
-/// El motor solo se actualiza cuando la ventana se cierra (ver `AppDelegate.windowWillClose`).
+/// Temporary buffer for the script while the editor window is open.
+/// The engine is only updated when the window closes (see `AppDelegate.windowWillClose`).
 @MainActor
 final class ScriptDraft: ObservableObject {
     @Published var text: String
@@ -1215,12 +1215,12 @@ struct ScriptEditorView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Guion")
+            Text("Script")
                 .font(.headline)
             TextEditor(text: $draft.text)
                 .font(.system(size: 15))
                 .frame(minWidth: 420, minHeight: 280)
-            Text("Se guarda al cerrar esta ventana. El panel vuelve al inicio.")
+            Text("Saved when this window closes. The panel goes back to the start.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -1229,19 +1229,19 @@ struct ScriptEditorView: View {
 }
 ```
 
-Nota: el guion se confirma en `engine.text` solo al cerrar la ventana (`windowWillClose`), no en cada tecla; `engine.text.didSet` guarda en el store y resetea el offset en ese momento.
+Note: the script is committed to `engine.text` only when the window closes (`windowWillClose`), not on every keystroke; `engine.text.didSet` saves it to the store and resets the offset at that point.
 
-- [ ] **Step 2: Abrir el editor como `NSWindow` desde el `AppDelegate`**
+- [ ] **Step 2: Open the editor as an `NSWindow` from the `AppDelegate`**
 
-No usar un `Window` scene de SwiftUI: con `LSUIElement` puede abrirse solo al lanzar. El editor se maneja a mano.
+Do not use a SwiftUI `Window` scene: with `LSUIElement` it could only be opened on launch. The editor is handled manually.
 
-En `NotchPrompter/NotchPrompterApp.swift`, agregar al inicio del `MenuBarExtra` el botón:
+In `NotchPrompter/NotchPrompterApp.swift`, add the button at the top of the `MenuBarExtra`:
 
 ```swift
-            Button("Editar guion…") { delegate.openEditor() }
+            Button("Edit Script…") { delegate.openEditor() }
 ```
 
-Y en `AppDelegate` (que ahora también conforma `NSWindowDelegate`), agregar la propiedad `draft`, el método `openEditor()` y `windowWillClose(_:)`:
+And in `AppDelegate` (which now also conforms to `NSWindowDelegate`), add the `draft` property, the `openEditor()` method, and `windowWillClose(_:)`:
 
 ```swift
     private var editorWindow: NSWindow?
@@ -1256,7 +1256,7 @@ Y en `AppDelegate` (que ahora también conforma `NSWindowDelegate`), agregar la 
                 backing: .buffered,
                 defer: false
             )
-            window.title = "Guion"
+            window.title = "Script"
             window.contentView = NSHostingView(rootView: ScriptEditorView(draft: draft))
             window.isReleasedWhenClosed = false
             window.delegate = self
@@ -1275,81 +1275,81 @@ Y en `AppDelegate` (que ahora también conforma `NSWindowDelegate`), agregar la 
     }
 ```
 
-El `body` completo del `App` queda:
+The full `body` of the `App` becomes:
 
 ```swift
     var body: some Scene {
         MenuBarExtra("NotchPrompter", systemImage: "text.alignleft") {
-            Button("Editar guion…") { delegate.openEditor() }
-            Button(delegate.isPanelVisible ? "Ocultar panel" : "Mostrar panel") {
+            Button("Edit Script…") { delegate.openEditor() }
+            Button(delegate.isPanelVisible ? "Hide Panel" : "Show Panel") {
                 delegate.togglePanel()
             }
-            Menu("Atajos") {
+            Menu("Shortcuts") {
                 ForEach(HotKeyCenter.Action.allCases, id: \.rawValue) { action in
                     if delegate.failedHotKeys.contains(action) {
-                        Text("\(action.label)  (no disponible)")
+                        Text("\(action.label)  (unavailable)")
                     } else {
                         Text(action.label)
                     }
                 }
             }
             Divider()
-            Button("Salir") { NSApplication.shared.terminate(nil) }
+            Button("Quit") { NSApplication.shared.terminate(nil) }
         }
     }
 ```
 
-- [ ] **Step 3: Compilar y probar el flujo completo**
+- [ ] **Step 3: Build and test the full flow**
 
 Run:
 ```bash
 xcodegen generate && xcodebuild build -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' -derivedDataPath DerivedData 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)" && open DerivedData/Build/Products/Debug/NotchPrompter.app
 ```
 Expected:
-1. Menú > Editar guion… abre la ventana. Pegar 6 o 7 párrafos.
-2. El panel muestra el texto en blanco a 60 % (en pausa).
-3. Cerrar el editor, hacer clic en Finder, ⌃⌥Espacio: el texto sube y queda a 100 %.
-4. ⌃⌥↑ muestra "70" en la esquina por un segundo y el texto acelera.
-5. ⌃⌥R vuelve al inicio y pausa.
-6. Cerrar la app y volver a abrirla: el guion y la velocidad persisten.
+1. Menu > Edit Script… opens the window. Paste 6 or 7 paragraphs.
+2. The panel shows the text in white at 60% (paused).
+3. Close the editor, click on Finder, ⌃⌥Space: the text scrolls up and reaches 100%.
+4. ⌃⌥↑ shows "70" in the corner for a second and the text speeds up.
+5. ⌃⌥R returns to the start and pauses.
+6. Close the app and reopen it: the script and speed persist.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add NotchPrompter/Views/ScriptEditorView.swift NotchPrompter/NotchPrompterApp.swift
-git commit -m "feat: editor de guion con persistencia"
+git commit -m "feat: script editor with persistence"
 ```
 
 ---
 
-### Task 9: Verificación manual con grabación y README
+### Task 9: Manual verification with recording and README
 
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: Correr la suite completa**
+- [ ] **Step 1: Run the full suite**
 
 Run: `xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "Test Case|TEST (SUCCEEDED|FAILED)"`
-Expected: 19 tests `passed` (4 geometría + 13 motor + 2 store; sin `SmokeTests`, cuya única prueba no verificaba nada), `** TEST SUCCEEDED **`.
+Expected: 19 tests `passed` (4 geometry + 13 engine + 2 store; excluding `SmokeTests`, whose only test didn't verify anything), `** TEST SUCCEEDED **`.
 
-- [ ] **Step 2: Prueba con QuickTime**
+- [ ] **Step 2: Test with QuickTime**
 
-1. Abrir QuickTime Player > Archivo > Nueva grabación de video.
-2. Abrir NotchPrompter. El panel debe verse encima de QuickTime.
-3. Con QuickTime en foco, ⌃⌥Espacio arranca el scroll. QuickTime no pierde el foco.
-4. Poner QuickTime en pantalla completa (botón verde). El panel sigue visible.
-5. Leer un guion de 1 minuto a velocidad 60. Anotar si 60 es cómodo o hay que cambiar `PrompterEngine.defaultSpeed`.
+1. Open QuickTime Player > File > New Screen Recording.
+2. Open NotchPrompter. The panel should appear on top of QuickTime.
+3. With QuickTime in focus, ⌃⌥Space starts the scroll. QuickTime does not lose focus.
+4. Put QuickTime in fullscreen (green button). The panel remains visible.
+5. Read a 1-minute script at speed 60. Note whether 60 feels comfortable or `PrompterEngine.defaultSpeed` needs to change.
 
-Si alguno falla, es un bug: aplicar superpowers:systematic-debugging antes de tocar código.
+If any of these fail, it's a bug: apply superpowers:systematic-debugging before touching the code.
 
-- [ ] **Step 3: Escribir `README.md`**
+- [ ] **Step 3: Write `README.md`**
 
 ```markdown
 # NotchPrompter
 
-Teleprompter para macOS que cuelga del notch. Pensado para grabar videos hablando a cámara: el texto queda justo bajo el lente.
+A teleprompter for macOS that hangs from the notch. Built for recording videos while talking to the camera: the text sits right below the lens.
 
-## Requisitos
+## Requirements
 
 - macOS 14+
 - Xcode 15+
@@ -1369,21 +1369,21 @@ open DerivedData/Build/Products/Debug/NotchPrompter.app
 xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS'
 ```
 
-## Atajos (globales, con ⌃⌥)
+## Shortcuts (global, with ⌃⌥)
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| ⌃⌥ Espacio | Play / pausa |
-| ⌃⌥ ↑ / ↓ | Velocidad +10 / -10 |
-| ⌃⌥ R | Volver al inicio |
-| ⌃⌥ T | Mostrar / ocultar panel |
+| ⌃⌥ Space | Play / pause |
+| ⌃⌥ ↑ / ↓ | Speed +10 / -10 |
+| ⌃⌥ R | Back to start |
+| ⌃⌥ T | Show / hide panel |
 
-El guion se edita desde el ícono de la barra de menú y se guarda solo.
+The script is edited from the menu bar icon and saved automatically when the editor window closes.
 ```
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add README.md
-git commit -m "docs: README con build, tests y atajos"
+git commit -m "docs: README with build, tests and shortcuts"
 ```

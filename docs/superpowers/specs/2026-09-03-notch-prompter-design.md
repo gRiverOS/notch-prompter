@@ -1,23 +1,23 @@
-# NotchPrompter — Diseño
+# NotchPrompter — Design
 
-Fecha: 2026-09-03
+Date: 2026-09-03
 
-## Objetivo
+## Goal
 
-Teleprompter nativo para macOS que cuelga del notch del MacBook, para grabar videos hablando a cámara con la mirada a 1-2 cm del lente. Scroll automático con velocidad ajustable, controlado por atajos globales.
+Native macOS teleprompter that hangs from the MacBook notch, for recording talking-head videos with your gaze 1-2 cm from the lens. Auto-scroll with adjustable speed, controlled by global shortcuts.
 
-Fuera de alcance en esta versión: seguimiento por voz, control manual línea a línea, exclusión del screen sharing, atajos configurables, archivos o sync del guion, ajuste de tipografía.
+Out of scope for this version: voice tracking, manual line-by-line control, screen sharing exclusion, configurable shortcuts, script files or sync, font adjustment.
 
 ## Stack
 
-- Swift 5.9+, SwiftUI para contenido, AppKit para la ventana.
-- macOS 14 o superior (usa `CADisplayLink` de `NSScreen`).
-- Proyecto Xcode generado con XcodeGen desde `project.yml`.
-- Sin dependencias externas.
+- Swift 5.9+, SwiftUI for content, AppKit for the window.
+- macOS 14 or later (uses `CADisplayLink` from `NSScreen`).
+- Xcode project generated with XcodeGen from `project.yml`.
+- No external dependencies.
 
-## 1. Ventana sobre el notch
+## 1. Window over the notch
 
-App sin Dock ni ventana principal (`LSUIElement = true`). Ícono en la barra de menú.
+App with no Dock or main window (`LSUIElement = true`). Icon in the menu bar.
 
 `PrompterPanel: NSPanel`:
 
@@ -25,67 +25,67 @@ App sin Dock ni ventana principal (`LSUIElement = true`). Ícono en la barra de 
 - `level = .statusBar + 1`.
 - `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]`.
 - `isOpaque = false`, `backgroundColor = .clear`, `hasShadow = false`.
-- `ignoresMouseEvents = true` siempre, porque el panel no tiene contenido interactivo.
-- Contenido: `NSHostingView` con `PrompterView`, fondo negro, esquinas inferiores redondeadas 16 pt.
+- `ignoresMouseEvents = true` always, since the panel has no interactive content.
+- Content: `NSHostingView` with `PrompterView`, black background, bottom corners rounded 16 pt.
 
-Geometría (`NotchGeometry`), función pura sobre valores extraídos de `NSScreen`:
+Geometry (`NotchGeometry`), a pure function over values pulled from `NSScreen`:
 
-- Entrada: `screenFrame`, `safeAreaInsets.top`, `auxiliaryTopLeftArea`, `auxiliaryTopRightArea`.
-- Ancho del notch = `topRight.minX - topLeft.maxX` cuando ambas áreas existen; si no hay notch, ancho 0.
-- Panel: 560 x 130 pt, centrado en X sobre el centro del notch (o de la pantalla si no hay notch), borde superior pegado al borde superior de la pantalla.
-- Se recalcula al recibir `NSApplication.didChangeScreenParametersNotification`.
+- Input: `screenFrame`, `safeAreaInsets.top`, `auxiliaryTopLeftArea`, `auxiliaryTopRightArea`.
+- Notch width = `topRight.minX - topLeft.maxX` when both areas exist; if there is no notch, width 0.
+- Panel: 560 x 130 pt, centered on the X axis over the notch's center (or the screen's, if there is no notch), top edge flush with the screen's top edge.
+- Recalculated on receiving `NSApplication.didChangeScreenParametersNotification`.
 
-## 2. Motor de scroll
+## 2. Scroll engine
 
-`PrompterEngine: ObservableObject`, sin dependencias de UI.
+`PrompterEngine: ObservableObject`, with no UI dependencies.
 
-Estado:
+State:
 
 - `text: String`
-- `offset: CGFloat` (puntos desplazados hacia arriba, parte en 0)
-- `speed: Double` en pt/s, rango 20...200, default 60, paso 10
+- `offset: CGFloat` (points scrolled upward, starts at 0)
+- `speed: Double` in pt/s, range 20...200, default 60, step 10
 - `isPlaying: Bool`
-- `contentHeight: CGFloat` (lo informa la vista)
+- `contentHeight: CGFloat` (reported by the view)
 - `viewportHeight: CGFloat`
 
-Reloj: protocolo `FrameClock` con `start(onTick: (dt) -> Void)` y `stop()`. Implementación real con `NSScreen.displayLink`; en tests se llama `tick(dt:)` a mano.
+Clock: `FrameClock` protocol with `start(onTick: (dt) -> Void)` and `stop()`. Real implementation with `NSScreen.displayLink`; in tests, `tick(dt:)` is called manually.
 
-Reglas:
+Rules:
 
-- `tick(dt)`: si `isPlaying`, `offset += speed * dt`. Si `offset >= contentHeight`, `offset = contentHeight` y `isPlaying = false`.
-- `togglePlay()`, `increaseSpeed()`, `decreaseSpeed()` (clamp al rango), `reset()` (offset 0, pausa).
-- `text` y `speed` se persisten en `UserDefaults` al cambiar. `offset` no.
+- `tick(dt)`: if `isPlaying`, `offset += speed * dt`. If `offset >= contentHeight`, `offset = contentHeight` and `isPlaying = false`.
+- `togglePlay()`, `increaseSpeed()`, `decreaseSpeed()` (clamp to range), `reset()` (offset 0, pause).
+- `text` and `speed` are persisted to `UserDefaults` on change. `offset` is not.
 
 Render (`PrompterView`):
 
-- `Text` completo dentro de `GeometryReader`, `.offset(y: -offset)`, `.clipped()`.
-- Padding superior igual a `viewportHeight` para que la primera línea entre desde abajo.
-- SF Pro 34 pt, blanco sobre negro, interlineado 1.3, sin `minimumScaleFactor`.
-- Degradado negro arriba y abajo; línea bajo el lente a brillo completo.
-- En pausa, texto a 60 % de opacidad.
-- Al cambiar velocidad, número en la esquina durante 1 s.
-- Texto vacío: "Escribe tu guion desde el menú" en gris.
+- Full `Text` inside a `GeometryReader`, `.offset(y: -offset)`, `.clipped()`.
+- Top padding equal to `viewportHeight` so the first line enters from below.
+- SF Pro 34 pt, white on black, 1.3 line spacing, no `minimumScaleFactor`.
+- Black gradient at top and bottom; the line under the lens at full brightness.
+- While paused, text at 60% opacity.
+- On speed change, the number appears in the corner for 1 s.
+- Empty text: "Write your script from the menu" in gray.
 
-## 3. Controles
+## 3. Controls
 
-Atajos globales con `RegisterEventHotKey` (Carbon), sin permiso de Accesibilidad, fijos:
+Global shortcuts with `RegisterEventHotKey` (Carbon), no Accessibility permission needed, fixed:
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| ⌃⌥ Espacio | Play / pausa |
-| ⌃⌥ ↑ / ↓ | Velocidad +10 / -10 |
-| ⌃⌥ R | Volver al inicio |
-| ⌃⌥ T | Mostrar / ocultar panel |
+| ⌃⌥ Space | Play / pause |
+| ⌃⌥ ↑ / ↓ | Speed +10 / -10 |
+| ⌃⌥ R | Back to start |
+| ⌃⌥ T | Show / hide panel |
 
-Editor de guion: ventana normal con `TextEditor`. El guion se guarda al cerrar esta ventana (no en cada tecla); al guardarse, el panel se actualiza y `offset` vuelve a 0.
+Script editor: normal window with `TextEditor`. The script is saved when this window closes (not on every keystroke); once saved, the panel updates and `offset` goes back to 0.
 
-Menú de barra: Editar guion, Mostrar/ocultar panel, submenú Atajos (referencia), Salir.
+Menu bar: "Edit Script…", "Show Panel" / "Hide Panel", submenu "Shortcuts" (reference), "Quit".
 
-Mostrar/ocultar panel: ocultar solo pausa la reproducción, sin rebobinar el `offset`; al volver a mostrar el panel retoma donde quedó. ⌃⌥ R es la única forma de volver al inicio.
+Show/hide panel: hiding only pauses playback, without rewinding `offset`; showing the panel again resumes where it left off. ⌃⌥ R is the only way to go back to the start.
 
-Errores: si falla el registro de un hotkey, se marca en el menú y el resto sigue. Nada más puede fallar de forma relevante.
+Errors: if registering a hotkey fails, it is flagged in the menu and the rest keep working. Nothing else can fail in a relevant way.
 
-## 4. Estructura
+## 4. Structure
 
 ```
 NotchPrompter/
@@ -105,15 +105,15 @@ NotchPrompter/
     └── NotchGeometryTests.swift
 ```
 
-## 5. Pruebas
+## 5. Tests
 
-Unitarias (XCTest):
+Unit (XCTest):
 
-- `PrompterEngine`: avance `speed * dt`; se detiene al final; clamp de velocidad 20...200; reset a 0 y pausa; no avanza en pausa.
-- `NotchGeometry`: MacBook Pro 14" con notch (panel centrado sobre el notch, pegado arriba); monitor externo sin notch (centrado en pantalla).
+- `PrompterEngine`: advances `speed * dt`; stops at the end; speed clamp 20...200; reset to 0 and pause; does not advance while paused.
+- `NotchGeometry`: 14" MacBook Pro with notch (panel centered over the notch, flush at the top); external monitor without a notch (centered on screen).
 
-Manuales:
+Manual:
 
-1. QuickTime grabando cámara: el panel se ve encima y los atajos funcionan sin activar la app.
-2. QuickTime en fullscreen: el panel sigue visible.
-3. Leer un guion de 1 minuto a velocidad 60 y calibrar el default.
+1. QuickTime recording the camera: the panel shows on top and shortcuts work without activating the app.
+2. QuickTime in fullscreen: the panel stays visible.
+3. Read a 1-minute script at speed 60 and calibrate the default.
