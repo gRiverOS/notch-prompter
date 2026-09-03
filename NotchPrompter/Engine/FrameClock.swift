@@ -17,7 +17,9 @@ final class DisplayLinkClock: FrameClock {
         stop()
         self.onTick = onTick
         lastTimestamp = nil
-        guard let screen = NSScreen.main else { return }
+        // Las apps LSUIElement pueden ver `NSScreen.main` nil transitoriamente
+        // (p. ej. justo al lanzar, sin ventana key); usamos la primera pantalla como respaldo.
+        guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let link = screen.displayLink(target: self, selector: #selector(step(_:)))
         link.add(to: .main, forMode: .common)
         self.link = link
