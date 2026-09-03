@@ -69,7 +69,7 @@ final class PrompterEngine: ObservableObject {
         }
     }
 
-    private func pause() {
+    func pause() {
         guard isPlaying else { return }
         isPlaying = false
         clock.stop()

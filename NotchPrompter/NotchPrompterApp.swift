@@ -84,7 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     private func hidePanel() {
         panel?.orderOut(nil)
-        engine.reset()
+        engine.pause()
         isPanelVisible = false
     }
 }
