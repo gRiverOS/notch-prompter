@@ -25,7 +25,7 @@ App sin Dock ni ventana principal (`LSUIElement = true`). Ícono en la barra de 
 - `level = .statusBar + 1`.
 - `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]`.
 - `isOpaque = false`, `backgroundColor = .clear`, `hasShadow = false`.
-- `ignoresMouseEvents = true` mientras reproduce.
+- `ignoresMouseEvents = true` siempre, porque el panel no tiene contenido interactivo.
 - Contenido: `NSHostingView` con `PrompterView`, fondo negro, esquinas inferiores redondeadas 16 pt.
 
 Geometría (`NotchGeometry`), función pura sobre valores extraídos de `NSScreen`:
@@ -77,9 +77,11 @@ Atajos globales con `RegisterEventHotKey` (Carbon), sin permiso de Accesibilidad
 | ⌃⌥ R | Volver al inicio |
 | ⌃⌥ T | Mostrar / ocultar panel |
 
-Editor de guion: ventana normal con `TextEditor`, guarda solo. Al cerrarla el panel se actualiza y `offset` vuelve a 0.
+Editor de guion: ventana normal con `TextEditor`. El guion se guarda al cerrar esta ventana (no en cada tecla); al guardarse, el panel se actualiza y `offset` vuelve a 0.
 
 Menú de barra: Editar guion, Mostrar/ocultar panel, submenú Atajos (referencia), Salir.
+
+Mostrar/ocultar panel: ocultar solo pausa la reproducción, sin rebobinar el `offset`; al volver a mostrar el panel retoma donde quedó. ⌃⌥ R es la única forma de volver al inicio.
 
 Errores: si falla el registro de un hotkey, se marca en el menú y el resto sigue. Nada más puede fallar de forma relevante.
 

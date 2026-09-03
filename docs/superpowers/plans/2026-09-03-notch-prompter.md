@@ -869,10 +869,8 @@ final class PrompterPanel: NSPanel {
         hidesOnDeactivate = false
         contentView = NSHostingView(rootView: PrompterView(engine: engine))
 
-        engine.$isPlaying
-            .receive(on: RunLoop.main)
-            .sink { [weak self] playing in self?.ignoresMouseEvents = playing }
-            .store(in: &cancellables)
+        // El panel no tiene contenido interactivo, así que siempre ignora el mouse.
+        ignoresMouseEvents = true
 
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .receive(on: RunLoop.main)
@@ -886,7 +884,7 @@ final class PrompterPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     func reposition() {
-        guard let screen = NSScreen.main else { return }
+        guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let frame = NotchGeometry.panelFrame(
             screenFrame: screen.frame,
             topLeftArea: screen.auxiliaryTopLeftArea,
@@ -940,7 +938,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     private func hidePanel() {
         panel?.orderOut(nil)
-        engine.reset()
+        engine.pause()
         isPanelVisible = false
     }
 }
@@ -1163,7 +1161,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     private func hidePanel() {
         panel?.orderOut(nil)
-        engine.reset()
+        engine.pause()
         isPanelVisible = false
     }
 }
@@ -1201,31 +1199,37 @@ git commit -m "feat: atajos globales con Carbon"
 ```swift
 import SwiftUI
 
+/// Buffer temporal del guion mientras la ventana de edición está abierta.
+/// El motor solo se actualiza cuando la ventana se cierra (ver `AppDelegate.windowWillClose`).
+@MainActor
+final class ScriptDraft: ObservableObject {
+    @Published var text: String
+
+    init(text: String) {
+        self.text = text
+    }
+}
+
 struct ScriptEditorView: View {
-    @ObservedObject var engine: PrompterEngine
-    @State private var draft: String = ""
+    @ObservedObject var draft: ScriptDraft
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Guion")
                 .font(.headline)
-            TextEditor(text: $draft)
+            TextEditor(text: $draft.text)
                 .font(.system(size: 15))
                 .frame(minWidth: 420, minHeight: 280)
-            Text("Se guarda solo. Al cerrar, el panel vuelve al inicio.")
+            Text("Se guarda al cerrar esta ventana. El panel vuelve al inicio.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(16)
-        .onAppear { draft = engine.text }
-        .onChange(of: draft) { _, new in
-            if new != engine.text { engine.text = new }
-        }
     }
 }
 ```
 
-Nota: `engine.text.didSet` ya guarda en el store y resetea el offset, así que no hace falta nada en `onDisappear`.
+Nota: el guion se confirma en `engine.text` solo al cerrar la ventana (`windowWillClose`), no en cada tecla; `engine.text.didSet` guarda en el store y resetea el offset en ese momento.
 
 - [ ] **Step 2: Abrir el editor como `NSWindow` desde el `AppDelegate`**
 
@@ -1237,12 +1241,14 @@ En `NotchPrompter/NotchPrompterApp.swift`, agregar al inicio del `MenuBarExtra` 
             Button("Editar guion…") { delegate.openEditor() }
 ```
 
-Y en `AppDelegate`, agregar la propiedad y el método:
+Y en `AppDelegate` (que ahora también conforma `NSWindowDelegate`), agregar la propiedad `draft`, el método `openEditor()` y `windowWillClose(_:)`:
 
 ```swift
     private var editorWindow: NSWindow?
+    private let draft = ScriptDraft(text: "")
 
     func openEditor() {
+        draft.text = engine.text
         if editorWindow == nil {
             let window = NSWindow(
                 contentRect: CGRect(x: 0, y: 0, width: 480, height: 360),
@@ -1251,13 +1257,21 @@ Y en `AppDelegate`, agregar la propiedad y el método:
                 defer: false
             )
             window.title = "Guion"
-            window.contentView = NSHostingView(rootView: ScriptEditorView(engine: engine))
+            window.contentView = NSHostingView(rootView: ScriptEditorView(draft: draft))
             window.isReleasedWhenClosed = false
+            window.delegate = self
             window.center()
             editorWindow = window
         }
         editorWindow?.makeKeyAndOrderFront(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard (notification.object as? NSWindow) === editorWindow else { return }
+        if draft.text != engine.text {
+            engine.text = draft.text
+        }
     }
 ```
 
@@ -1316,7 +1330,7 @@ git commit -m "feat: editor de guion con persistencia"
 - [ ] **Step 1: Correr la suite completa**
 
 Run: `xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' 2>&1 | grep -E "Test Case|TEST (SUCCEEDED|FAILED)"`
-Expected: 19 tests `passed` (1 smoke + 4 geometría + 12 motor + 2 store), `** TEST SUCCEEDED **`.
+Expected: 19 tests `passed` (4 geometría + 13 motor + 2 store; sin `SmokeTests`, cuya única prueba no verificaba nada), `** TEST SUCCEEDED **`.
 
 - [ ] **Step 2: Prueba con QuickTime**
 
