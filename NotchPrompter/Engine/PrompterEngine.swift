@@ -4,9 +4,9 @@ import CoreGraphics
 /// Estado y reglas del teleprompter. Sin dependencias de UI.
 @MainActor
 final class PrompterEngine: ObservableObject {
-    static let speedRange: ClosedRange<Double> = 20...200
-    static let speedStep: Double = 10
-    static let defaultSpeed: Double = 60
+    nonisolated static let speedRange: ClosedRange<Double> = 20...200
+    nonisolated static let speedStep: Double = 10
+    nonisolated static let defaultSpeed: Double = 60
 
     @Published var text: String {
         didSet {
