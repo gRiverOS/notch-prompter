@@ -26,10 +26,11 @@ struct NotchPrompterApp: App {
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
     let engine = PrompterEngine(clock: DisplayLinkClock(), store: UserDefaultsStore())
     private var panel: PrompterPanel?
     private var editorWindow: NSWindow?
+    private let draft = ScriptDraft(text: "")
     private let hotKeys = HotKeyCenter()
     @Published private(set) var isPanelVisible = false
     @Published private(set) var failedHotKeys: [HotKeyCenter.Action] = []
@@ -48,6 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     func openEditor() {
+        draft.text = engine.text
         if editorWindow == nil {
             let window = NSWindow(
                 contentRect: CGRect(x: 0, y: 0, width: 480, height: 360),
@@ -56,13 +58,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 defer: false
             )
             window.title = "Guion"
-            window.contentView = NSHostingView(rootView: ScriptEditorView(engine: engine))
+            window.contentView = NSHostingView(rootView: ScriptEditorView(draft: draft))
             window.isReleasedWhenClosed = false
+            window.delegate = self
             window.center()
             editorWindow = window
         }
         editorWindow?.makeKeyAndOrderFront(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard (notification.object as? NSWindow) === editorWindow else { return }
+        if draft.text != engine.text {
+            engine.text = draft.text
+        }
     }
 
     private func handle(_ action: HotKeyCenter.Action) {
