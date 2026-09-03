@@ -1,0 +1,48 @@
+name: NotchPrompter
+options:
+  bundleIdPrefix: cl.gustavo
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  NotchPrompter:
+    type: application
+    platform: macOS
+    sources:
+      - NotchPrompter
+    info:
+      path: NotchPrompter/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleName: NotchPrompter
+        CFBundleDisplayName: NotchPrompter
+        NSHumanReadableCopyright: ""
+    settings:
+      base:
+        ENABLE_TESTABILITY: YES
+  NotchPrompterTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - NotchPrompterTests
+    dependencies:
+      - target: NotchPrompter
+schemes:
+  NotchPrompter:
+    build:
+      targets:
+        NotchPrompter: all
+        NotchPrompterTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - NotchPrompterTests
