@@ -44,8 +44,7 @@ final class PrompterPanel: NSPanel {
         let frame = NotchGeometry.panelFrame(
             screenFrame: screen.frame,
             topLeftArea: screen.auxiliaryTopLeftArea,
-            topRightArea: screen.auxiliaryTopRightArea,
-            menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
+            topRightArea: screen.auxiliaryTopRightArea
         )
         setFrame(frame, display: true)
     }
