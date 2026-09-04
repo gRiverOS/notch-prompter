@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates the app icon set from Design/AppIcon.svg.
+# Regenerates the app icon and the menu bar icon from the SVGs in Design/.
 #
 # Usage: scripts/make-icon.sh
 #
@@ -8,11 +8,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ASSETS="$ROOT/NotchPrompter/Resources/Assets.xcassets"
 SVG="$ROOT/Design/AppIcon.svg"
-SET="$ROOT/NotchPrompter/Resources/Assets.xcassets/AppIcon.appiconset"
+SET="$ASSETS/AppIcon.appiconset"
+MENU_SVG="$ROOT/Design/MenuBarIcon.svg"
+MENU_SET="$ASSETS/MenuBarIcon.imageset"
 
 command -v rsvg-convert >/dev/null || { echo "rsvg-convert not found; brew install librsvg"; exit 1; }
-[[ -f "$SVG" ]] || { echo "missing $SVG"; exit 1; }
+for f in "$SVG" "$MENU_SVG"; do [[ -f "$f" ]] || { echo "missing $f"; exit 1; }; done
 
 mkdir -p "$SET"
 rm -f "$SET"/*.png
@@ -43,3 +46,24 @@ cat > "$SET/Contents.json" <<'JSON'
 JSON
 
 echo "wrote $(ls "$SET"/*.png | wc -l | tr -d ' ') PNGs to $SET"
+
+# --- Menu bar icon -----------------------------------------------------------
+# 18pt at 1x and 2x, rendered as a template image so macOS recolors it for the
+# light bar, the dark bar and the highlighted state.
+mkdir -p "$MENU_SET"
+rm -f "$MENU_SET"/*.png
+rsvg-convert -w 18 -h 18 "$MENU_SVG" -o "$MENU_SET/menubar_18.png"
+rsvg-convert -w 36 -h 36 "$MENU_SVG" -o "$MENU_SET/menubar_36.png"
+
+cat > "$MENU_SET/Contents.json" <<'JSON'
+{
+  "images" : [
+    { "idiom" : "universal", "scale" : "1x", "filename" : "menubar_18.png" },
+    { "idiom" : "universal", "scale" : "2x", "filename" : "menubar_36.png" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 },
+  "properties" : { "template-rendering-intent" : "template" }
+}
+JSON
+
+echo "wrote 2 PNGs to $MENU_SET"

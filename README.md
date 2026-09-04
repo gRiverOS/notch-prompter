@@ -62,7 +62,7 @@ Translations live in `NotchPrompter/Resources/Localizable.xcstrings`, a String C
 
 ## Icon
 
-The app icon is drawn in `Design/AppIcon.svg` and rendered into the asset catalog. After editing the SVG, regenerate the ten PNG sizes macOS expects and commit both:
+Both icons are drawn as SVGs in `Design/`: `AppIcon.svg` for the app and `MenuBarIcon.svg` for the menu bar. The menu bar one is a template image, so macOS recolors it for the light bar, the dark bar and the highlighted state. After editing either SVG, regenerate the PNGs and commit them alongside the source:
 
 ```bash
 scripts/make-icon.sh
