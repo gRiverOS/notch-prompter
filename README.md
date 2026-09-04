@@ -60,6 +60,16 @@ The interface follows your macOS system language. There is no setting to change 
 
 Translations live in `NotchPrompter/Resources/Localizable.xcstrings`, a String Catalog you can open in Xcode. To add a language, add its locale to the catalog, translate every key, then add the locale to `supportedLanguages` in `NotchPrompterTests/LocalizationTests.swift`. The test suite fails on any key left untranslated, so nothing ships half-localized.
 
+## Icon
+
+The app icon is drawn in `Design/AppIcon.svg` and rendered into the asset catalog. After editing the SVG, regenerate the ten PNG sizes macOS expects and commit both:
+
+```bash
+scripts/make-icon.sh
+```
+
+Requires `brew install librsvg`.
+
 ## Release (maintainers)
 
 Requires a Developer ID Application certificate, a `notarytool` keychain profile and an authenticated `gh` CLI. See the header of `scripts/release.sh` for the one-time setup.
