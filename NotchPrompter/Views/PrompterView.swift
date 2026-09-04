@@ -74,7 +74,8 @@ struct PrompterView: View {
             Spacer()
             VStack {
                 Spacer()
-                Text("\(Int(engine.speed))")
+                // verbatim: the speed is a number, not a translatable string.
+                Text(verbatim: "\(Int(engine.speed))")
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
                     .foregroundStyle(.white.opacity(0.8))
                     .padding(.horizontal, 8)

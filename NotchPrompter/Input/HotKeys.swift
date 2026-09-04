@@ -20,13 +20,15 @@ final class HotKeyCenter {
             }
         }
 
+        /// Localized label shown in the menu bar's Shortcuts submenu. The modifier
+        /// symbols stay as-is; the key name and the action are translated.
         var label: String {
             switch self {
-            case .togglePlay: return "⌃⌥ Space  Play / pause"
-            case .speedUp: return "⌃⌥ ↑  Speed +10"
-            case .speedDown: return "⌃⌥ ↓  Speed -10"
-            case .reset: return "⌃⌥ R  Back to start"
-            case .toggleVisibility: return "⌃⌥ T  Show / hide panel"
+            case .togglePlay: return String(localized: "⌃⌥ Space  Play / pause")
+            case .speedUp: return String(localized: "⌃⌥ ↑  Speed +10")
+            case .speedDown: return String(localized: "⌃⌥ ↓  Speed -10")
+            case .reset: return String(localized: "⌃⌥ R  Back to start")
+            case .toggleVisibility: return String(localized: "⌃⌥ T  Show / hide panel")
             }
         }
     }

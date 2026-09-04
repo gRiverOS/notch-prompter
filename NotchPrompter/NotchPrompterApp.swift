@@ -57,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWi
                 backing: .buffered,
                 defer: false
             )
-            window.title = "Script"
+            window.title = String(localized: "Script")
             window.contentView = NSHostingView(rootView: ScriptEditorView(draft: draft))
             window.isReleasedWhenClosed = false
             window.delegate = self

@@ -4,6 +4,8 @@
 
 A teleprompter for macOS that hangs from the notch. Built for recording videos while talking to the camera: the text sits right below the lens.
 
+Available in English and Spanish. The app follows your system language, with no setting to change.
+
 ## Install
 
 With Homebrew:

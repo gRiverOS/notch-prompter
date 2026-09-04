@@ -1,0 +1,92 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@  (unavailable)" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@  (unavailable)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@  (no disponible)" } }
+      }
+    },
+    "⌃⌥ ↑  Speed +10" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ ↑  Speed +10" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ ↑  Velocidad +10" } }
+      }
+    },
+    "⌃⌥ ↓  Speed -10" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ ↓  Speed -10" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ ↓  Velocidad -10" } }
+      }
+    },
+    "⌃⌥ R  Back to start" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ R  Back to start" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ R  Volver al inicio" } }
+      }
+    },
+    "⌃⌥ Space  Play / pause" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ Space  Play / pause" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ Espacio  Reproducir / pausar" } }
+      }
+    },
+    "⌃⌥ T  Show / hide panel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ T  Show / hide panel" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "⌃⌥ T  Mostrar / ocultar panel" } }
+      }
+    },
+    "Edit Script…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit Script…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Editar guion…" } }
+      }
+    },
+    "Hide Panel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide Panel" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ocultar panel" } }
+      }
+    },
+    "Quit" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quit" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Salir" } }
+      }
+    },
+    "Saved when this window closes. The panel goes back to the start." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved when this window closes. The panel goes back to the start." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se guarda al cerrar esta ventana. El panel vuelve al inicio." } }
+      }
+    },
+    "Script" : {
+      "comment" : "Title of the script editor window and its heading",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Script" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guion" } }
+      }
+    },
+    "Shortcuts" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shortcuts" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atajos" } }
+      }
+    },
+    "Show Panel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show Panel" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar panel" } }
+      }
+    },
+    "Write your script from the menu" : {
+      "comment" : "Placeholder shown in the panel when no script has been written yet",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Write your script from the menu" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escribe tu guion desde el menú" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
