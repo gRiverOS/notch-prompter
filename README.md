@@ -4,7 +4,7 @@
 
 A teleprompter for macOS that hangs from the notch. Built for recording videos while talking to the camera: the text sits right below the lens.
 
-Available in English and Spanish. The app follows your system language, with no setting to change.
+Available in English and Spanish.
 
 ## Install
 
@@ -49,15 +49,28 @@ xcodebuild test -project NotchPrompter.xcodeproj -scheme NotchPrompter -destinat
 
 The script is edited from the menu bar icon and saved automatically when the editor window closes.
 
+## Languages
+
+The interface follows your macOS system language. There is no setting to change inside the app.
+
+| Language | Status |
+|---|---|
+| English | Source language |
+| Spanish | Complete |
+
+Translations live in `NotchPrompter/Resources/Localizable.xcstrings`, a String Catalog you can open in Xcode. To add a language, add its locale to the catalog, translate every key, then add the locale to `supportedLanguages` in `NotchPrompterTests/LocalizationTests.swift`. The test suite fails on any key left untranslated, so nothing ships half-localized.
+
 ## Release (maintainers)
 
 Requires a Developer ID Application certificate, a `notarytool` keychain profile and an authenticated `gh` CLI. See the header of `scripts/release.sh` for the one-time setup.
 
 ```bash
-scripts/release.sh 0.1.0
+scripts/release.sh 0.2.1
 ```
 
-It builds a Release binary, signs it with hardened runtime, notarizes and staples it, runs a Gatekeeper check, tags `v0.1.0` and publishes a GitHub Release with the zip attached.
+It builds a Release binary, signs it with hardened runtime, notarizes and staples it, runs a Gatekeeper check, tags the version and publishes a GitHub Release with the zip attached. It then bumps the [Homebrew cask](https://github.com/gRiverOS/homebrew-tap) to the new version and sha256, and pushes it. Set `TAP_DIR` if your clone of the tap is not at `~/dev/personal/homebrew-tap`.
+
+Versions follow [Semantic Versioning](https://semver.org).
 
 ## License
 
