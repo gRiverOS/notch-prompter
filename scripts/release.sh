@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds, signs (Developer ID), notarizes, staples and publishes a GitHub Release.
 #
-# Usage: scripts/release.sh <version>      e.g. scripts/release.sh 0.1.0
+# Usage: scripts/release.sh <version>
 #
 # One-time setup:
 #   - A "Developer ID Application" certificate in the login keychain.
@@ -11,8 +11,8 @@
 set -euo pipefail
 
 VERSION="${1:-}"
-[[ -n "$VERSION" ]] || { echo "usage: $0 <version>  (e.g. 0.1.0)"; exit 1; }
-[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "version must look like 1.2.3"; exit 1; }
+[[ -n "$VERSION" ]] || { echo "usage: $0 <version>"; exit 1; }
+[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "version must look like MAJOR.MINOR.PATCH"; exit 1; }
 
 PROJECT="NotchPrompter"      # Xcode project, scheme and Swift module
 APP_NAME="Notch Prompter"    # the built .app, i.e. what Finder shows
