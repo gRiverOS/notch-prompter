@@ -91,4 +91,25 @@ gh release create "$TAG" "$ZIP" \
   --title "$APP_NAME $VERSION" \
   --generate-notes
 
+# --- Update the Homebrew cask ------------------------------------------------
+# Set TAP_DIR to point at a local clone of the tap; skipped when it is missing.
+TAP_DIR="${TAP_DIR:-$HOME/dev/personal/homebrew-tap}"
+CASK="$TAP_DIR/Casks/notch-prompter.rb"
+if [[ -f "$CASK" ]]; then
+  echo "==> Updating Homebrew cask"
+  SHA256="$(shasum -a 256 "$ZIP" | awk '{print $1}')"
+  sed -i '' -E \
+    -e "s|^  version \".*\"$|  version \"$VERSION\"|" \
+    -e "s|^  sha256 \".*\"$|  sha256 \"$SHA256\"|" \
+    "$CASK"
+  grep -qF "\"$VERSION\"" "$CASK" && grep -qF "\"$SHA256\"" "$CASK" \
+    || { echo "cask update did not apply cleanly; edit $CASK by hand"; exit 1; }
+  git -C "$TAP_DIR" add Casks/notch-prompter.rb
+  git -C "$TAP_DIR" commit -qm "notch-prompter $VERSION"
+  git -C "$TAP_DIR" push -q
+  echo "    cask bumped to $VERSION"
+else
+  echo "==> Skipping cask update: $CASK not found (set TAP_DIR to override)"
+fi
+
 echo "==> Done: $ZIP"

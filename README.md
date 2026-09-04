@@ -6,7 +6,15 @@ A teleprompter for macOS that hangs from the notch. Built for recording videos w
 
 ## Install
 
-Download the latest `NotchPrompter-<version>.zip` from [Releases](https://github.com/gRiverOS/notch-prompter/releases), unzip it and drag `NotchPrompter.app` to Applications. The app is signed with a Developer ID and notarized, so it opens without warnings.
+With Homebrew:
+
+```bash
+brew install --cask gRiverOS/tap/notch-prompter
+```
+
+Or download the latest `NotchPrompter-<version>.zip` from [Releases](https://github.com/gRiverOS/notch-prompter/releases), unzip it and drag `NotchPrompter.app` to Applications.
+
+The app is signed with a Developer ID and notarized, so it opens without warnings.
 
 ## Requirements
 
