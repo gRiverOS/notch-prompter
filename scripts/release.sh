@@ -14,15 +14,17 @@ VERSION="${1:-}"
 [[ -n "$VERSION" ]] || { echo "usage: $0 <version>  (e.g. 0.1.0)"; exit 1; }
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "version must look like 1.2.3"; exit 1; }
 
-APP_NAME="NotchPrompter"
-SCHEME="NotchPrompter"
+PROJECT="NotchPrompter"      # Xcode project, scheme and Swift module
+APP_NAME="Notch Prompter"    # the built .app, i.e. what Finder shows
+ZIP_BASE="NotchPrompter"     # release asset, kept space-free for download URLs
+SCHEME="$PROJECT"
 TAG="v$VERSION"
 NOTARY_PROFILE="${NOTARY_PROFILE:-notarytool}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$ROOT/dist"
 BUILD="$DIST/build"
 APP="$BUILD/Build/Products/Release/$APP_NAME.app"
-ZIP="$DIST/$APP_NAME-$VERSION.zip"
+ZIP="$DIST/$ZIP_BASE-$VERSION.zip"
 
 cd "$ROOT"
 
@@ -45,7 +47,7 @@ mkdir -p "$DIST"
 # --- Build + sign ------------------------------------------------------------
 xcodegen generate >/dev/null
 xcodebuild build \
-  -project "$APP_NAME.xcodeproj" \
+  -project "$PROJECT.xcodeproj" \
   -scheme "$SCHEME" \
   -configuration Release \
   -destination 'platform=macOS' \

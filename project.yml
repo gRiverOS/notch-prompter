@@ -24,12 +24,22 @@ targets:
       path: NotchPrompter/Info.plist
       properties:
         LSUIElement: true
-        CFBundleName: NotchPrompter
-        CFBundleDisplayName: NotchPrompter
+        CFBundleName: Notch Prompter
+        CFBundleDisplayName: Notch Prompter
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSHumanReadableCopyright: "© 2026 Gustavo L. Riveros. MIT License."
     settings:
+      base:
+        # The product carries the spaced name because Finder shows the file
+        # name, not CFBundleDisplayName. The bundle identifier is pinned so it
+        # never follows the product name: it is the UserDefaults key holding
+        # every user's saved script.
+        PRODUCT_NAME: Notch Prompter
+        # A space is illegal in a Swift module name, so the module keeps the
+        # old spelling and `@testable import NotchPrompter` keeps working.
+        PRODUCT_MODULE_NAME: NotchPrompter
+        PRODUCT_BUNDLE_IDENTIFIER: cl.gustavo.NotchPrompter
       configs:
         Debug:
           ENABLE_TESTABILITY: YES
@@ -42,6 +52,12 @@ targets:
       - NotchPrompterTests
     dependencies:
       - target: NotchPrompter
+    settings:
+      base:
+        # The target is still NotchPrompter but the product is "Notch Prompter",
+        # so the test host has to be spelled out.
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Notch Prompter.app/Contents/MacOS/Notch Prompter
+        BUNDLE_LOADER: $(TEST_HOST)
 schemes:
   NotchPrompter:
     build:

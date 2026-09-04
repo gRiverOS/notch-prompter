@@ -1,4 +1,4 @@
-# NotchPrompter
+# Notch Prompter
 
 [![CI](https://github.com/gRiverOS/notch-prompter/actions/workflows/ci.yml/badge.svg)](https://github.com/gRiverOS/notch-prompter/actions/workflows/ci.yml)
 
@@ -14,7 +14,7 @@ With Homebrew:
 brew install --cask gRiverOS/tap/notch-prompter
 ```
 
-Or download the latest `NotchPrompter-<version>.zip` from [Releases](https://github.com/gRiverOS/notch-prompter/releases), unzip it and drag `NotchPrompter.app` to Applications.
+Or download the latest `NotchPrompter-<version>.zip` from [Releases](https://github.com/gRiverOS/notch-prompter/releases), unzip it and drag `Notch Prompter.app` to Applications.
 
 The app is signed with a Developer ID and notarized, so it opens without warnings.
 
@@ -29,7 +29,7 @@ The app is signed with a Developer ID and notarized, so it opens without warning
 ```bash
 xcodegen generate
 xcodebuild build -project NotchPrompter.xcodeproj -scheme NotchPrompter -destination 'platform=macOS' -derivedDataPath DerivedData
-open DerivedData/Build/Products/Debug/NotchPrompter.app
+open "DerivedData/Build/Products/Debug/Notch Prompter.app"
 ```
 
 ## Tests

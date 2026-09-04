@@ -5,7 +5,7 @@ struct NotchPrompterApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        MenuBarExtra("NotchPrompter", image: "MenuBarIcon") {
+        MenuBarExtra("Notch Prompter", image: "MenuBarIcon") {
             Button("Edit Script…") { delegate.openEditor() }
             Button(delegate.isPanelVisible ? "Hide Panel" : "Show Panel") {
                 delegate.togglePanel()
