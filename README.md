@@ -81,7 +81,7 @@ Requires `brew install librsvg`.
 Requires a Developer ID Application certificate, a `notarytool` keychain profile and an authenticated `gh` CLI. See the header of `scripts/release.sh` for the one-time setup.
 
 ```bash
-scripts/release.sh 0.4.1
+scripts/release.sh <version>
 ```
 
 It builds a Release binary, signs it with hardened runtime, notarizes and staples it, runs a Gatekeeper check, tags the version and publishes a GitHub Release with the zip attached. It then bumps the [Homebrew cask](https://github.com/gRiverOS/homebrew-tap) to the new version and sha256, and pushes it. Set `TAP_DIR` if your clone of the tap is not at `~/dev/personal/homebrew-tap`.
