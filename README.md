@@ -32,6 +32,12 @@ xcodebuild build -project NotchPrompter.xcodeproj -scheme NotchPrompter -destina
 open "DerivedData/Build/Products/Debug/Notch Prompter.app"
 ```
 
+### A note on the two spellings
+
+The product is **Notch Prompter**, with a space: that is the app in Applications and the name people read. The Xcode project, the scheme, the Swift module, the source folders and the release zip keep `NotchPrompter` without one, and so does the bundle identifier `cl.gustavo.NotchPrompter`.
+
+That last one is not cosmetic. It is the `UserDefaults` key each user's script and speed are stored under, so renaming it would silently wipe every saved script. `BundleIdentityTests` fails if it ever moves.
+
 ## Tests
 
 ```bash
@@ -75,7 +81,7 @@ Requires `brew install librsvg`.
 Requires a Developer ID Application certificate, a `notarytool` keychain profile and an authenticated `gh` CLI. See the header of `scripts/release.sh` for the one-time setup.
 
 ```bash
-scripts/release.sh 0.2.1
+scripts/release.sh 0.4.1
 ```
 
 It builds a Release binary, signs it with hardened runtime, notarizes and staples it, runs a Gatekeeper check, tags the version and publishes a GitHub Release with the zip attached. It then bumps the [Homebrew cask](https://github.com/gRiverOS/homebrew-tap) to the new version and sha256, and pushes it. Set `TAP_DIR` if your clone of the tap is not at `~/dev/personal/homebrew-tap`.
